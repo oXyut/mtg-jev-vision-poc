@@ -4,7 +4,7 @@ Jev 1.14の画像入力とBoxで、複数のMTGカードの位置を検出でき
 
 Issue #13で境界断片・誤統合・短名・完了条件を[オフライン修正](docs/offline-fixes.md)し、送信機能のない4×4core/64質問plannerを追加した。旧実測は保持し、追加API呼出しと実写真の改善評価は行っていない。
 
-Issue #15では、画像からNを推定し、そのN個のBoxを同一画像・同一リクエストで求める[単純なfan-out方式](docs/count-batch.md)を実測した。Issue #17で局所cropも比較し、[190 HTTP・推定US$0.017095974までの経過](docs/live-batch-followups.md)を記録。8枚完全の要件は未達で、低確信とraw位置精度を分けて診断している。PoC累計上限US$5、無料枠不足応答で停止する。
+Issue #15では画像からNを推定する[単純なfan-out方式](docs/count-batch.md)を実測。Issue #17/#18で局所crop・実画素maskも比較し、[220 HTTP・推定US$0.020858502の結果](docs/live-batch-followups.md)を保存した。最新の固定方式は盤面3/8・整列1/8、いずれも誤検出0。先行mask方式は盤面0/8・整列6/8で、別方式の最良値を組み合わせない。8枚完全は未達。低confidenceとraw位置精度を分けた閾値診断を含む開発実験であり、汎化性能は未検証。PoC累計上限US$5、無料枠不足応答で停止する。
 
 | 機能 | 状態 |
 | --- | --- |

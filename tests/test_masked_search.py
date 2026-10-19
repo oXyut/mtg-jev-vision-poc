@@ -1,7 +1,9 @@
 import unittest
 from PIL import Image
 from mtg_jev.geometry import Box
-from mtg_jev.masked_search import render_search,unmasked_fraction,adoption_reasons,masked_document,local_document
+from mtg_jev.masked_search import render_search,unmasked_fraction,adoption_reasons,masked_document,local_document,detect_masked,MaskSettings
+from mtg_jev.images import prepare,png_bytes
+from mtg_jev.refine import proposal_crop
 
 
 class MaskedSearchTests(unittest.TestCase):
@@ -29,6 +31,35 @@ class MaskedSearchTests(unittest.TestCase):
             self.assertEqual(len(d['assets']),1)
         self.assertEqual(len(masked_document([], 'opaque')['questions']),2)
         self.assertEqual(len(local_document([], 'opaque')['questions']),3)
+
+    def test_pipeline_preserves_low_score_with_supported_geometry_and_never_claims_exhaustiveness(self):
+        source=prepare(png_bytes(Image.new('RGB',(800,600),'white')))
+        target=Box(.1,.1,.3,.4)
+        tile,region=proposal_crop(source.original,target)
+        l,t,r,b=target.pixels(*source.original.size)
+        local=Box((l-region[0])/tile.original.width,(t-region[1])/tile.original.height,
+                  (r-region[0])/tile.original.width,(b-region[1])/tile.original.height)
+        def response(p,box=None,single=None):
+            a={'present':{'type':'noul','noul':p}}
+            if box:a['card']={'type':'box','box':box.json(),'confidence':.2}
+            if single is not None:a['single']={'type':'noul','noul':single}
+            return {'model':'mock-script','usage':{'input_tokens':0,'output_tokens':0},'answers':a}
+        class Replay:
+            mode='mock';calls=0
+            def _ask(self,*args):
+                r=self.responses[self.calls];self.calls+=1;return r
+        client=Replay();client.responses=[response(.99,target),response(.99,tile.to_prepared(local),.95),response(.01)]
+        result=detect_masked(source,client)
+        self.assertEqual(result['api_calls'],3)
+        self.assertEqual(len(result['detections']),1)
+        self.assertEqual(result['detections'][0]['confidence'],.2)
+        self.assertEqual(result['status'],'incomplete')
+        self.assertEqual(result['stop_reason'],'model_reports_none_not_proof_of_exhaustiveness')
+        self.assertEqual(source.original.getpixel((100,100)),(255,255,255))
+
+    def test_invalid_policy_is_rejected_before_inference(self):
+        for kwargs in ({'max_rounds':17},{'presence_no':.9},{'mask_margin_pixels':-1}):
+            with self.assertRaises(ValueError):MaskSettings(**kwargs)
 
 
 if __name__=='__main__':unittest.main()
