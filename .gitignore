@@ -13,3 +13,6 @@ demo/
 uploads/
 *.log
 .DS_Store
+camera-usage.json
+camera-usage.json.lock
+camera-usage.json.tmp

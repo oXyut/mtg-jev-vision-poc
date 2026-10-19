@@ -16,4 +16,4 @@ mtg-jev = "mtg_jev.cli:main"
 packages = ["mtg_jev"]
 
 [tool.setuptools.package-data]
-mtg_jev = ["web.html"]
+mtg_jev = ["web.html", "camera.html", "camera.js", "camera-core.js"]
