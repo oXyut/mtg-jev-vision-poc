@@ -1,5 +1,7 @@
 # 未知枚数のcount → Box fan-out（Issue #15）
 
+実測を再開した。[190 HTTPまでの結果とraw診断](live-batch-followups.md)を参照。以下の準備時の条件を保持し、採用とraw候補を別集計している。
+
 ## 1質問と1リクエストの区別
 
 [公式JS型定義](https://github.com/typesafe-ai/typesafe-sdk-js/blob/main/src/types.ts)と[Python wire schema](https://github.com/typesafe-ai/typesafe-sdk-python/blob/f36e68549ceca3191e5791e5f99ea1baa1a258b5/src/typesafe_sdk/_schemas/models.py)では、`questions`は複数質問の辞書、各`BoxAnswer`は単一Box、`answers`は質問ごとの辞書である。**1つのBox質問の単一出力は、1リクエスト全体を1Boxへ制限する意味ではない。** アプリ側で複数回答を配列へ整理できるが、1つのBox質問から任意長配列が返るとは仮定しない。
@@ -19,7 +21,7 @@
 
 新承認は既消費US$0.003473862を含むPoC累計US$5。旧30回上限・追加2回だけという制限は解除された。アダプターの承認上限をUS$5へ更新し、batchでは質問数に応じて65,536入力token/質問の予約額を増やす。これは文書料金からの保守的な推定であり、プロバイダーの厳密な請求上限を設定したものではない。全実験の累積ledgerを共有し、usage不明の失敗では停止する。
 
-**この版では追加実APIは0。** 取得済みSDKはsystemone/modelsとusageを扱うが、無料残高参照APIを確認できず、接続済みの請求画面読取り経路もない。固定`https://api.typesafe.ai/v1/systemone`からusageは得られても無料クレジット残高は分からない。支払/自動チャージ設定を変更せず、無料残高の数値確認待ちとしている。残高不明のまま「カード課金なし」を保証しない。
+準備時は無料残高の数値確認待ちだったが、その後の本人の訂正・再承認で、無料枠自動停止を前提に実測を再開した。取得済みSDKには無料残高参照APIを確認できず、固定systemone先から得られるusageを全試行で保存する。無料枠不足応答や費用不明で停止し、支払/自動チャージ設定は変更しない。最新の使用量は上記実測文書に記録する。
 
 ## オフライン検証
 
