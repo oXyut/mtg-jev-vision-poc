@@ -17,6 +17,7 @@ from .provider import MODEL, PRICE_PER_MILLION_INPUT, ProviderError, read_usage
 @dataclass(frozen=True)
 class PartitionSettings:
     max_requests: int = 13
+    max_regions: int = 127
     max_depth: int = 4
     overlap: float = .25
     count_confidence: float = .8
@@ -31,6 +32,8 @@ class PartitionSettings:
             raise ValueError('max_requests must be 1..30')
         if type(self.max_depth) is not int or not 0 <= self.max_depth <= 6:
             raise ValueError('max_depth must be 0..6')
+        if type(self.max_regions) is not int or not 1 <= self.max_regions <= 127:
+            raise ValueError('max_regions must be 1..127')
         for k in ('count_confidence', 'min_box_confidence', 'merge_iou', 'merge_containment'):
             if probability(getattr(self, k), k) <= 0:
                 raise ValueError('Threshold must be positive')
@@ -72,44 +75,67 @@ def containment(a, b):
 
 
 def merge_candidates(candidates, settings):
-    """Union overlapping duplicates. May merge distinct occluded cards: evaluate FP/FN."""
-    groups = []
-    for candidate in sorted(candidates, key=lambda c: -c['confidence']):
+    """Legacy name: preserve every observation; geometry cannot establish identity.
+
+    No union, suppression, transitive grouping, or confidence promotion occurs.
+    Only candidates with neither artificial clipping nor identity ambiguity can
+    become detections. Threshold fields remain in historical settings, unused.
+    """
+    result = []
+    for index, candidate in enumerate(candidates):
         box = Box.read(candidate['box'])
-        matches = [g for g in groups if any(
-            iou(box, Box.read(m['box'])) >= settings.merge_iou or
-            containment(box, Box.read(m['box'])) >= settings.merge_containment
-            for m in g)]
-        if matches:
-            members = [candidate]
-            for g in matches:
-                members.extend(g)
-                groups.remove(g)
-            groups.append(members)
-        else:
-            groups.append([candidate])
-    detections = []
-    for group in groups:
-        boxes = [Box.read(m['box']) for m in group]
-        box = Box(min(b.left for b in boxes), min(b.top for b in boxes),
-                  max(b.right for b in boxes), max(b.bottom for b in boxes))
-        detections.append({'id': f'card-{len(detections)+1}', 'box': box.json(),
-                           'confidence': max(m['confidence'] for m in group),
-                           'members': [m['region_id'] for m in group],
-                           'identification': {'status': 'unknown', 'candidates': [],
-                                              'reason': 'identification_not_run'}})
-    return detections
+        overlaps = [j for j, other in enumerate(candidates) if j != index and
+                    iou(box, Box.read(other['box'])) > 0]
+        reasons = []
+        if candidate.get('boundaries', {}).get('artificial_crop'):
+            reasons.append('artificial_crop_boundary_unresolved')
+        if candidate.get('boundaries', {}).get('padding'):
+            reasons.append('padding_extent_unresolved')
+        if overlaps:
+            reasons.append('identity_unverified')
+        result.append({**candidate, 'id': f'candidate-{index+1}',
+                       'status': 'unresolved' if reasons else 'resolved',
+                       'unresolved_reasons': reasons,
+                       'possible_same_as': [f'candidate-{j+1}' for j in overlaps]})
+    return result
+
+
+def classify_boundaries(local, raw, tile, region, full_size, tolerance_pixels=2):
+    """Separate the physical photo edge, artificial crop cuts, and padding."""
+    content = tile.to_prepared(Box(0, 0, 1, 1))
+    pad_x, pad_y = tile.padding
+    boundaries = {'original_image': [], 'artificial_crop': [], 'padding': []}
+    w, h = tile.original.size
+    for side, edge, limit, tolerance in (
+            ('left', local.left, 0, tolerance_pixels/w),
+            ('top', local.top, 0, tolerance_pixels/h),
+            ('right', local.right, 1, tolerance_pixels/w),
+            ('bottom', local.bottom, 1, tolerance_pixels/h)):
+        if abs(edge-limit) <= tolerance:
+            position = region[('left', 'top', 'right', 'bottom').index(side)]
+            outer = 0 if side in ('left', 'top') else full_size[0 if side == 'right' else 1]
+            boundaries['original_image' if position == outer else 'artificial_crop'].append(side)
+    for side, padding in (('left', pad_x), ('right', pad_x), ('top', pad_y), ('bottom', pad_y)):
+        if padding:
+            value, valid = getattr(raw, side), getattr(content, side)
+            outside = value < valid if side in ('left', 'top') else value > valid
+            if outside:
+                boundaries['padding'].append(side)
+    return boundaries
 
 
 def detect_partition(prepared, client, settings=PartitionSettings()):
     started, initial_calls = time.perf_counter(), client.calls
     queue = deque([('root', (0, 0, *prepared.original.size), 0)])
     candidates, trace, unresolved = [], [], []
+    regions_visited = 0
     usage = {'input_tokens': 0, 'output_tokens': 0}
     status, stop = 'complete', 'all_regions_resolved'
     try:
-        while queue and client.calls - initial_calls < settings.max_requests:
+        while (queue and client.calls - initial_calls < settings.max_requests and
+               regions_visited < settings.max_regions):
             region_id, region, depth = queue.popleft()
+            regions_visited += 1
             tile = prepare(png_bytes(prepared.original.crop(region)))
             response = client.ask_partition(tile)
             tokens = read_usage(response)
@@ -146,12 +172,13 @@ def detect_partition(prepared, client, settings=PartitionSettings()):
                 bc = None if answer['confidence'] is None else probability(answer['confidence'])
                 record['box_confidence'] = bc
                 if bc is not None and bc >= settings.min_box_confidence:
-                    box = to_global(tile.to_original(Box.read(answer['box'])), region, prepared.original.size)
-                    local = tile.to_original(Box.read(answer['box']))
-                    boundary = any(v <= .02 or v >= .98 for v in (local.left, local.top, local.right, local.bottom))
+                    raw_box = Box.read(answer['box'])
+                    local = tile.to_original(raw_box)
+                    box = to_global(local, region, prepared.original.size)
+                    boundaries = classify_boundaries(local, raw_box, tile, region, prepared.original.size)
                     candidates.append({'box': box.json(), 'confidence': bc,
-                                       'region_id': region_id, 'touches_crop_boundary': boundary})
-                    record['action'] = 'accept_one'
+                                       'region_id': region_id, 'boundaries': boundaries})
+                    record['action'] = 'retain_one_candidate'
                     continue
             if depth < settings.max_depth:
                 a, b = split_region(region, settings.overlap)
@@ -162,21 +189,44 @@ def detect_partition(prepared, client, settings=PartitionSettings()):
                 unresolved.append(region_id)
         if queue or unresolved:
             status = 'incomplete'
-            stop = 'request_limit' if queue else 'unresolved_depth_limit'
+            stop = ('region_limit' if regions_visited >= settings.max_regions else 'request_limit') if queue else 'unresolved_depth_limit'
     except ProviderError as exc:
         status, stop = 'error', str(exc)
+        if regions_visited:
+            unresolved.append(region_id)
     except (ValueError, KeyError, TypeError, AttributeError):
         status, stop = 'error', 'invalid_provider_response'
-    detections = merge_candidates(candidates, settings)
-    return {'schema_version': 1, 'mode': client.mode, 'experiment': 'count_gated_partition_v1',
+        if regions_visited:
+            unresolved.append(region_id)
+    candidates = merge_candidates(candidates, settings)
+    unresolved_candidates = [c for c in candidates if c['status'] == 'unresolved']
+    unresolved = sorted(set(unresolved + [c['region_id'] for c in unresolved_candidates]))
+    if status == 'complete' and unresolved:
+        status, stop = 'incomplete', 'unresolved_boundary_or_identity'
+    detections = [{'id': f'card-{i+1}', 'box': c['box'], 'confidence': c['confidence'],
+                   'source_candidate': c['id'],
+                   'identification': {'status': 'unknown', 'candidates': [], 'reason': 'identification_not_run'}}
+                  for i, c in enumerate(c for c in candidates if c['status'] == 'resolved')]
+    calls = client.calls - initial_calls
+    pending_ids = [x[0] for x in queue]
+    return {'schema_version': 2, 'mode': client.mode, 'experiment': 'count_gated_partition_boundary_guard_v2',
             'evidence': 'live_exploratory_not_baseline' if client.mode == 'live' else 'mock_replay_not_vision',
             'coordinate_system': COORDINATES,
             'image': {'width': prepared.original.width, 'height': prepared.original.height},
             'requested_model': MODEL if client.mode == 'live' else None,
             'settings': asdict(settings), 'detections': detections, 'candidates': candidates,
             'status': status, 'stop_reason': stop, 'trace': trace,
-            'pending_regions': [x[0] for x in queue], 'unresolved_regions': unresolved,
-            'api_calls': client.calls - initial_calls if client.mode == 'live' else 0,
+            'pending_regions': pending_ids, 'unresolved_regions': unresolved,
+            'counters': {'provider_calls': calls,
+                         'http_requests': calls if client.mode == 'live' else 0,
+                         'questions_evaluated': len(trace)*3,
+                         'questions_submitted': calls*3 if client.mode == 'live' else 0,
+                         'regions_visited': regions_visited, 'regions_evaluated': len(trace),
+                         'pending_regions': len(pending_ids),
+                         'unresolved_regions': len(set(pending_ids + unresolved)),
+                         'unresolved_candidates': len(unresolved_candidates),
+                         'full_tree_regions_at_max_depth': 2**(settings.max_depth+1)-1},
+            'api_calls': calls if client.mode == 'live' else 0,
             'usage': usage, 'estimated_cost_usd': usage['input_tokens'] * PRICE_PER_MILLION_INPUT / 1e6,
             'pipeline_elapsed_ms': round((time.perf_counter()-started)*1000, 3),
             'warnings': ['Experimental count gating and overlap merging do not guarantee exhaustive detection']}

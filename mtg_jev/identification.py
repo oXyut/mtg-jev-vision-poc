@@ -55,10 +55,11 @@ class Catalog:
             self.cards[card_id] = {'id': card_id, 'name': name}
         self.digest = hashlib.sha256(json.dumps(document, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
-    def decide(self, observations, top_k=5, ocr_status='ready'):
+    def decide(self, observations, top_k=5, ocr_status='ready', language=None):
         if type(top_k) is not int or not 1 <= top_k <= 10:
             raise ValueError('top_k must be 1..10')
         scores, exact_ids = {}, set()
+        language_blocked = False
         for observation in observations:
             text, confidence = observation['text'], observation['confidence']
             if not isinstance(text, str) or len(text) > 512:
@@ -68,13 +69,22 @@ class Catalog:
             if not 0 <= confidence <= 100:
                 raise ValueError('Invalid OCR confidence')
             key = normalize(text)
-            if len(key) < 4 or confidence < 60:
+            if not key or confidence < 60:
                 continue
             exact = self.aliases.get(key, set())
-            if confidence >= 80:
+            short = len(key) < 4
+            cjk = any('\u3400' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' for c in key)
+            languages = set(language.split('+')) if isinstance(language, str) else set()
+            compatible = ((not languages or bool(languages & {'jpn', 'chi_sim', 'chi_tra'})) if cjk
+                          else bool(languages & {'eng', 'deu', 'fra', 'spa', 'ita', 'por'}))
+            if exact and short and not compatible:
+                language_blocked = True
+            if confidence >= (95 if short else 80) and (not short or compatible):
                 exact_ids.update(exact)
             # Search the complete supplied catalog. Truncation affects display only.
-            nearby = get_close_matches(key, self.aliases, n=10, cutoff=.5)
+            # Exact lookup precedes length gates. Short fuzzy strings are never
+            # promoted, and ambiguous aliases are checked over the whole catalog.
+            nearby = get_close_matches(key, self.aliases, n=10, cutoff=.5) if not short else []
             for alias in set(nearby) | ({key} if exact else set()):
                 similarity = SequenceMatcher(None, key, alias, autojunk=False).ratio()
                 for card_id in self.aliases[alias]:
@@ -94,6 +104,8 @@ class Catalog:
         elif len(exact_ids) == 1:
             accepted = self.cards[next(iter(exact_ids))]
             reason = 'unique_high_quality_exact_title'
+        elif language_blocked:
+            reason = 'short_title_language_mismatch_or_unknown'
         return {
             'status': 'identified' if accepted else 'unknown',
             'card_id': accepted['id'] if accepted else None,
@@ -101,6 +113,7 @@ class Catalog:
             'reason': reason, 'candidates': candidates,
             'score_type': 'string_similarity_and_tesseract_confidence_not_probability',
             'catalog_sha256': self.digest, 'catalog_coverage': self.coverage,
+            'ocr_language': language,
             'warning': 'Exact OCR may still be wrong; reference coverage is caller-declared, not verified',
         }
 
@@ -177,7 +190,7 @@ def identify_document(prepared, document, catalog, engine, crop_source='predicte
     started = time.perf_counter()
     for detection in result['detections']:
         observations, status = engine.read(crop(prepared, Box.read(detection['box'])))
-        identification = catalog.decide(observations, top_k, status)
+        identification = catalog.decide(observations, top_k, status, getattr(engine, 'language', None))
         identification['ocr_observations'] = len(observations)
         # OCR text remains in memory and is deliberately absent from saved results.
         detection['identification'] = identification

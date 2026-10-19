@@ -16,7 +16,7 @@
 
 名前とaliasはUnicode NFKC・casefold後、英数字/文字を残して比較する。同じ正規化名を持つ別IDを統合して断定しない。
 
-- 全カタログで一意の完全一致、タイトル4文字以上、最も低い単語のOCR confidenceが80以上、OCR処理完了の場合のみidentified。
+- 全カタログで一意の完全一致、タイトル4文字以上、最も低い単語のOCR confidenceが80以上、OCR処理完了の場合のみidentified。Issue #13の修正で、4文字未満も先に完全一致lookupを行い、confidence95以上・対応言語条件で採否を決める。短名はfuzzy採用しない。[短名の条件と限界](offline-fixes.md)を参照。
 - 類似文字列は候補として返すが、自動採用しない。OCR confidence 60未満の行は候補検索にも使わない。
 - 部分カタログは完全一致してもcandidate-onlyとしてunknown。
 - alias衝突、向き間の矛盾、文字なし、低品質、engine/言語データなし、処理失敗はunknown。

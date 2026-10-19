@@ -48,9 +48,11 @@ class PartitionTests(unittest.TestCase):
         result = detect_partition(self.prepared, client)
         self.assertEqual(client.calls, 3)
         self.assertEqual([t['region_id'] for t in result['trace']], ['root', 'rootL', 'rootR'])
-        self.assertEqual(len(result['detections']), 2)
-        self.assertAlmostEqual(result['detections'][0]['box']['right'], .5625)
-        self.assertAlmostEqual(result['detections'][1]['box']['left'], .4375)
+        self.assertEqual(len(result['candidates']), 2)
+        self.assertAlmostEqual(result['candidates'][0]['box']['right'], .5625)
+        self.assertAlmostEqual(result['candidates'][1]['box']['left'], .4375)
+        self.assertEqual(result['detections'], [])
+        self.assertEqual(result['status'], 'incomplete')
 
     def test_request_and_depth_limits_remain_incomplete(self):
         result = detect_partition(self.prepared, Script([answer('several')]), PartitionSettings(max_requests=1))
@@ -76,15 +78,16 @@ class PartitionTests(unittest.TestCase):
         response['answers']['count']['probabilities']['one'] = -1
         result = detect_partition(self.prepared, Script([response]))
         self.assertEqual(result['status'], 'error')
+        self.assertEqual(result['counters']['unresolved_regions'], 1)
 
-    def test_overlap_merge_unions_fragments_and_keeps_disjoint_cards(self):
+    def test_overlap_keeps_unresolved_observations_without_union(self):
         candidates = [{'box': Box(.1, .1, .5, .7).json(), 'confidence': .9, 'region_id': 'a'},
                       {'box': Box(.12, .1, .52, .7).json(), 'confidence': .8, 'region_id': 'b'},
                       {'box': Box(.6, .1, .9, .7).json(), 'confidence': .9, 'region_id': 'c'}]
         result = merge_candidates(candidates, PartitionSettings())
-        self.assertEqual(len(result), 2)
-        merged = next(d for d in result if len(d['members']) == 2)
-        self.assertEqual(merged['box'], Box(.1, .1, .52, .7).json())
+        self.assertEqual(len(result), 3)
+        self.assertEqual([r['box'] for r in result], [c['box'] for c in candidates])
+        self.assertEqual([r['status'] for r in result], ['unresolved', 'unresolved', 'resolved'])
 
     def test_padding_round_trip_before_global_mapping(self):
         tile = prepare(png_bytes(Image.new('RGB', (100, 150))))
