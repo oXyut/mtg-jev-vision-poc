@@ -1,5 +1,7 @@
 # Network secretの互換性と未検証範囲（Issue #8）
 
+2026-10-19追記: 承認済み専用環境で、Network secretのplaceholderと既定HTTPS proxyを使った画像付き実API呼出しが初回4件・分割追試26件、計30件成功した。固定先・モデル・redirect禁止は維持し、キー実値を取得・表示・保存していない。[初回実測](live-baseline.md)と[分割追試](partition-experiment.md)を参照。以下の「未実行」はコード側互換性を検証した当初の記録である。他環境や全エラー条件での実置換を保証するものではない。
+
 ## 確認した仕様
 
 2026-10-19に[Cloud environments公式](https://learn.chatgpt.com/docs/environments/cloud-environments#configure-environment-variables-and-network-secrets)を確認した。Network secretはプロセスにplaceholderを渡し、許可した宛先へのHTTPS/443通信で管理proxyが実値に置換する。実値をローカルプロセスやファイルに置く方式とは異なる。同名の直接環境変数とは重複させない。
