@@ -50,6 +50,8 @@ class JevClient:
     def __init__(self, approval):
         # Gate BEFORE touching the API key or creating an HTTP opener.
         approval.validate()
+        # Opaque credential: a cloud Network secret supplies a placeholder here.
+        # Preserve it in Bearer; only the managed HTTPS proxy replaces it.
         key = os.environ.get("TYPESAFE_API_KEY", "")
         if not key or key == "YOUR_TYPESAFE_API_KEY" or any(c.isspace() for c in key):
             raise ValueError("A securely supplied TYPESAFE_API_KEY is required")
@@ -57,6 +59,8 @@ class JevClient:
         self.approval = approval
         self.calls = 0
         self.input_tokens = 0
+        # Keep urllib's default ProxyHandler and TLS verification. It respects
+        # the environment's HTTPS proxy; do not add a proxy-bypassing fallback.
         self.opener = urllib.request.build_opener(NoRedirect())
 
     def ask(self, prepared, excluded):
