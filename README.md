@@ -1,6 +1,6 @@
 # MTG × Jev vision PoC
 
-Jev 1.14の画像入力とBoxで、複数のMTGカードの位置を検出できるか調べるPoCです。**現時点で確認したのは、合成矩形と台本応答による入出力・座標・評価の動作だけです。実カード検出の有効性は未実測です。**
+Jev 1.14の画像入力とBoxで、複数のMTGカードの位置を検出できるか調べるPoCです。**確認済みの範囲は、合成矩形の台本再生と、架空タイトルの自作文字画像へのローカルOCRです。実MTGカードの検出・同定精度は未実測です。**
 
 | 機能 | 状態 |
 | --- | --- |
@@ -8,7 +8,7 @@ Jev 1.14の画像入力とBoxで、複数のMTGカードの位置を検出でき
 | 手動正解box・IoU / precision / recall / F1 | 実装済み |
 | Jev HTTPアダプター | スタブ検証のみ。実API未実行 |
 | 実MTGカードの検出精度 | 未評価 |
-| cropからカード名の同定 | [Issue #2](https://github.com/oXyut/mtg-jev-vision-poc/issues/2)、現在はunknown |
+| cropから名前OCR・候補検索・unknown判定 | [Issue #2](https://github.com/oXyut/mtg-jev-vision-poc/issues/2)、ローカルCLIを実装。実カードは未評価 |
 | 動画・リアルタイム表示 | [Issue #3](https://github.com/oXyut/mtg-jev-vision-poc/issues/3)、未実装 |
 
 静止画MVPの目的・受入条件・検証・残課題は[Issue #1](https://github.com/oXyut/mtg-jev-vision-poc/issues/1)で追跡します。
@@ -20,7 +20,7 @@ Python 3.11以上を使用します。依存はPyPIのPillowだけです。
 ```bash
 git clone https://github.com/oXyut/mtg-jev-vision-poc.git
 cd mtg-jev-vision-poc
-git switch feat/1-still-image-poc
+git switch feat/2-local-card-identification
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install --index-url https://pypi.org/simple -e .
@@ -29,6 +29,8 @@ python -m mtg_jev serve
 ```
 
 `http://127.0.0.1:8765` を開きます。Web UIはloopbackのみ、モック専用です。キーの入力欄はありません。合成シナリオを表示して「モックboxを表示」、手動正解boxを描いて「手動正解と比較」を押します。座標の数値入力、正解JSONの読込・保存、結果JSON・オーバーレイPNGの保存にも対応します。
+
+名前のOCRは別CLIです。Tesseractと利用言語データをOSの公式パッケージから導入し、[同定の再現手順・方式比較・権利・評価定義](docs/identification.md)に沿って実行してください。Tesseract未導入時はunknownを返します。CIでは公式Ubuntuパッケージを導入し、実ローカルOCRの合成テストも実行します。
 
 任意のPNG/JPEGも選べますが、**モックboxの位置は選択シナリオで固定され、アップロードした画像は認識しません。** 入力と処理結果はサーバーメモリ内で扱い、サーバーは保存しません。保存ボタンを押すと、画像を含むファイルをブラウザーでダウンロードします。公開ネットワークへこの開発サーバーを公開する構成は対象外です。
 

@@ -12,9 +12,9 @@ from .images import MAX_FILE, crop, overlay, prepare
 from .provider import JevClient, LiveApproval, MockClient
 
 
-def read_json(path):
-    if Path(path).stat().st_size > 2 * 1024 * 1024:
-        raise ValueError("JSON file exceeds 2 MiB")
+def read_json(path, limit=2 * 1024 * 1024):
+    if Path(path).stat().st_size > limit:
+        raise ValueError("JSON file exceeds size limit")
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
@@ -45,6 +45,22 @@ def main(argv=None):
     evaluation.add_argument("--output")
     serve = sub.add_parser("serve", help="Loopback-only, mock-only Web UI")
     serve.add_argument("--port", type=int, default=8765)
+    ocr_demo = sub.add_parser("identification-demo", help="Generate fictional text for local OCR")
+    ocr_demo.add_argument("--output", default="demo/identification")
+    identify = sub.add_parser("identify", help="Offline crop → OCR → catalog candidates/unknown")
+    identify.add_argument("image")
+    identify.add_argument("--detections", required=True)
+    identify.add_argument("--catalog", required=True)
+    identify.add_argument("--output", required=True)
+    identify.add_argument("--lang", default="eng")
+    identify.add_argument("--top-k", type=int, default=5)
+    identify.add_argument("--crop-source", choices=("predicted", "ground_truth"), default="predicted")
+    id_eval = sub.add_parser("evaluate-identification")
+    id_eval.add_argument("prediction")
+    id_eval.add_argument("truth")
+    id_eval.add_argument("--iou", type=float, default=.5)
+    id_eval.add_argument("--top-k", type=int, default=5)
+    id_eval.add_argument("--output")
     args = parser.parse_args(argv)
     try:
         if args.command == "demo":
@@ -90,6 +106,31 @@ def main(argv=None):
         elif args.command == "serve":
             from .server import serve
             serve(args.port)
+        elif args.command == "identification-demo":
+            from .identification_demo import generate_identification_demo
+            generate_identification_demo(args.output)
+            print("Generated fictional title images and known boxes; not an MTG benchmark.")
+        elif args.command == "identify":
+            from .identification import Catalog, TesseractOCR, identify_document
+            if Path(args.output).exists() or Path(args.image).stat().st_size > MAX_FILE:
+                raise ValueError("Choose a new output file and an image within size limits")
+            catalog = Catalog(read_json(args.catalog, limit=32 * 1024 * 1024))
+            prepared = prepare(Path(args.image).read_bytes())
+            result = identify_document(prepared, read_json(args.detections), catalog,
+                                       TesseractOCR(args.lang), args.crop_source, args.top_k)
+            Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+            write_json(args.output, result)
+            print(json.dumps({'method': 'local_ocr', 'external_api_calls': 0,
+                              'identified': sum(d['identification']['status'] == 'identified'
+                                                for d in result['detections']),
+                              'total': len(result['detections'])}))
+        elif args.command == "evaluate-identification":
+            from .identification import evaluate_identifications
+            metrics = evaluate_identifications(read_json(args.prediction), read_json(args.truth),
+                                               args.iou, args.top_k)
+            if args.output:
+                write_json(args.output, metrics)
+            print(json.dumps(metrics, indent=2, allow_nan=False))
     except (ValueError, OSError, KeyError, TypeError):
         # Do not print arbitrary exception bodies, paths, image bytes, or credentials.
         print("Input/configuration error. Check formats, flags, limits and output directory.", file=sys.stderr)
