@@ -1,5 +1,7 @@
 # none/one/severalによる分割実験（Issue #11、baselineとは別）
 
+以下は旧SHA 520115e〜23d6b1fの実測・設定を保持した記録。オフラインレビューで境界・同一性・完了条件の不具合が確定し、Issue #13で[保守的な修正と次の固定実験案](offline-fixes.md)を追加した。旧結果は再計算しておらず、追加APIも実写真改善の実測もない。
+
 ## 仕様照合
 
 公式SDK [schemas/models.py](https://github.com/typesafe-ai/typesafe-sdk-python/blob/f36e68549ceca3191e5791e5f99ea1baa1a258b5/src/typesafe_sdk/_schemas/models.py) と [endpoints.py](https://github.com/typesafe-ai/typesafe-sdk-python/blob/f36e68549ceca3191e5791e5f99ea1baa1a258b5/src/typesafe_sdk/_core/endpoints.py) をGitHubから取得して照合した。画像をstate中のopaque参照とassetsで結び、request JSONとPNGのmultipartで送る既存形式は一致している。Boxの左右は幅比、上下は高さ比で、Box confidenceはnullも許される。基準コードは数値の低確信をincompleteとして扱い、不在とは扱っていなかった。nullも不在の根拠にはしない。
