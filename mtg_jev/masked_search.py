@@ -54,6 +54,25 @@ def masked_ranked_document(unused, reference):
     return document
 
 
+def correspondence_document(search_crop, original_reference):
+    """Aligned search/original crops; questions cannot inspect other answers."""
+    import base64
+    import uuid
+    from .images import png_bytes
+    search_reference=str(uuid.uuid4())
+    target=('The individual Magic: The Gathering card whose printing remains visible '
+            'nearest the center in search_crop, ignoring uniform gray masks and empty sleeve borders. ')
+    return {'model':MODEL,'state':{'original_crop':original_reference,'search_crop':search_reference},
+        'assets':{original_reference:{'type':'image','part':'photo'},
+                  search_reference:{'type':'image','format':'png',
+                      'data_base64':base64.b64encode(png_bytes(search_crop.image)).decode()}},
+        'questions':{
+            'present':{'type':'noul','instructions':'Is a Magic: The Gathering card visibly present in original_crop?'},
+            'single':{'type':'noul','instructions':'Does original_crop primarily show one identifiable Magic: The Gathering card? Ignore tiny neighboring edge fragments.'},
+            'same_target':{'type':'noul','instructions':target+'Can this target be unambiguously matched to exactly the same physical card in original_crop by its visible printing and occlusions? This is target identifiability, not a check of another answer.'},
+            'card':{'type':'box','instructions':target+'In original_crop, locate this SAME physical card by matching visible printing and occlusions. Do not switch to another card that is nearer the center of original_crop. Return its visible printed rectangle in original_crop coordinates, excluding sleeve and hidden parts.'}}}
+
+
 def render_search(original, boxes, margin=4):
     image=original.copy()
     mask=Image.new('L',original.size,0)
@@ -86,15 +105,19 @@ def adoption_reasons(presence,single,confidence,agreement,new_fraction,boundarie
     return reasons
 
 
-def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progress=None):
-    """Experimental v1/v2, both incomplete even when the model reports none.
+def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progress=None,
+                  search_caption=None,correspondence=False):
+    """Experimental search, always incomplete even when the model reports none.
 
-    v2 changes the search caption and permits up to three original-image crops.
+    Legacy v2 defaults to the baseline caption and up to three original crops.
+    Explicit search_caption separates that factor from recentering for ablation.
     Cross-crop agreement is evidence of stability, not independent correctness.
     """
     from .images import prepare,png_bytes
     from .refine import proposal_crop
     from .partition import classify_boundaries,to_global
+    caption=search_caption or ('baseline' if recenter else 'short')
+    if caption not in ('short','baseline'):raise ValueError('Unknown search caption')
     started,initial=time.perf_counter(),client.calls
     candidates,adopted=[],[]
     usage={'input_tokens':0,'output_tokens':0}
@@ -121,7 +144,7 @@ def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progres
         for ordinal in range(settings.max_rounds):
             search,mask=render_search(prepared.original,adopted,settings.mask_margin_pixels)
             tile=prepare(png_bytes(search))
-            a=ask(tile,masked_ranked_document if recenter else masked_document,2)
+            a=ask(tile,masked_ranked_document if caption=='baseline' else masked_document,2)
             presence=noul(a,'present')
             c={'round':ordinal,'search_presence':presence,'status':'unresolved','reasons':[],'local_attempts':[]}
             candidates.append(c)
@@ -136,17 +159,25 @@ def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progres
             for observation in range(3 if recenter else 1):
                 for margin in (.15,.5):
                     tile,region=proposal_crop(prepared.original,anchor,margin)
-                    a=ask(tile,local_document,3)
+                    if correspondence:
+                        search_tile=prepare(png_bytes(search.crop(region)))
+                        if search_tile.metadata()!=tile.metadata():raise ValueError('Crop transforms differ')
+                        a=ask(tile,lambda unused,ref:correspondence_document(search_tile,ref),4)
+                    else:a=ask(tile,local_document,3)
                     local_presence,single=noul(a,'present'),noul(a,'single')
                     raw,confidence=read_box(a);local=tile.to_original(raw)
                     refined=to_global(local,region,prepared.original.size)
                     boundaries=classify_boundaries(local,raw,tile,region,prepared.original.size)
                     agreement,fraction=iou(anchor,refined),unmasked_fraction(refined,mask)
                     reasons=adoption_reasons(local_presence,single,confidence,agreement,fraction,boundaries,settings)
+                    same_target=noul(a,'same_target') if correspondence else None
+                    if correspondence and same_target<settings.presence_yes:
+                        reasons.append('target_correspondence_unresolved')
                     c['local_attempts'].append({'recenter':observation,'anchor_box':anchor.json(),
                         'margin':margin,'region_pixels':list(region),'presence':local_presence,
                         'single':single,'box':refined.json(),'confidence':confidence,
                         'boundaries':boundaries,'cross_view_iou':agreement,'reasons':list(reasons)})
+                    if correspondence:c['local_attempts'][-1]['same_target']=same_target
                     if not (boundaries['artificial_crop'] or boundaries['padding']):break
                 if not reasons or local_presence<settings.presence_yes or fraction<settings.minimum_unmasked_fraction:break
                 anchor=refined
@@ -155,16 +186,22 @@ def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progres
             c.update(box=refined.json(),confidence=confidence,presence=local_presence,single=single,
                 cross_view_iou=agreement,new_unmasked_fraction=fraction,boundaries=boundaries,
                 reasons=reasons,overlapping_prior_ids=duplicate)
+            if correspondence:c['same_target']=same_target
             if reasons:stop='local_evidence_unresolved';break
             c['status']='accepted';adopted.append(refined)
             if progress:progress({'round':ordinal+1,'accepted':len(adopted),'http_calls':client.calls-initial})
     except (ProviderError,ValueError,KeyError,TypeError):
         status,stop='error','provider_or_answer_error_no_retry'
-    return {'schema_version':1,'mode':client.mode,'experiment':'masked_search_v2' if recenter else 'masked_search_v1',
+    experiment=('masked_search_correspondence_v1' if correspondence else
+                'masked_search_v2' if caption=='baseline' and recenter else
+                'masked_search_v1' if caption=='short' and not recenter else
+                'masked_search_caption_only_v1' if caption=='baseline' else 'masked_search_recenter_only_v1')
+    return {'schema_version':1,'mode':client.mode,'experiment':experiment,
         'evidence':'live_exploratory_development_fit' if client.mode=='live' else 'mock_replay',
         'coordinate_system':COORDINATES,'image':{'width':prepared.original.width,'height':prepared.original.height},
         'candidates':candidates,'detections':[{'id':f'card-{i+1}','box':c['box'],'confidence':c['confidence']}
             for i,c in enumerate(x for x in candidates if x['status']=='accepted')],
         'status':status,'stop_reason':stop,'api_calls':client.calls-initial,'usage':usage,
+        'search_caption':caption,'recenter':recenter,'correspondence':correspondence,
         'estimated_cost_usd':usage['input_tokens']*PRICE_PER_MILLION_INPUT/1e6,
         'pipeline_elapsed_ms':round((time.perf_counter()-started)*1000,3)}

@@ -1,7 +1,7 @@
 import unittest
 from PIL import Image
 from mtg_jev.geometry import Box
-from mtg_jev.masked_search import render_search,unmasked_fraction,adoption_reasons,masked_document,local_document,detect_masked,MaskSettings
+from mtg_jev.masked_search import render_search,unmasked_fraction,adoption_reasons,masked_document,local_document,detect_masked,MaskSettings,correspondence_document
 from mtg_jev.images import prepare,png_bytes
 from mtg_jev.refine import proposal_crop
 
@@ -60,6 +60,55 @@ class MaskedSearchTests(unittest.TestCase):
     def test_invalid_policy_is_rejected_before_inference(self):
         for kwargs in ({'max_rounds':17},{'presence_no':.9},{'mask_margin_pixels':-1}):
             with self.assertRaises(ValueError):MaskSettings(**kwargs)
+
+    def test_correspondence_assets_have_explicit_shared_target_without_answer_dependencies(self):
+        crop=prepare(png_bytes(Image.new('RGB',(400,300),'gray')))
+        doc=correspondence_document(crop,'original-id')
+        self.assertEqual(doc['state']['original_crop'],'original-id')
+        self.assertEqual(len(doc['assets']),2)
+        self.assertEqual(set(doc['questions']),{'present','single','same_target','card'})
+        self.assertIn('original_crop coordinates',doc['questions']['card']['instructions'])
+        self.assertIn('search_crop',doc['questions']['card']['instructions'])
+        self.assertNotIn('target_box',str(doc))
+
+    def test_caption_and_recenter_can_be_changed_independently_without_network(self):
+        source=prepare(png_bytes(Image.new('RGB',(800,600),'white')))
+        class Empty:
+            mode='mock';calls=0
+            def _ask(self,tile,unused,factory,nq):
+                self.instructions=factory([], 'opaque')['questions']['card']['instructions']
+                self.calls+=1
+                return {'model':'mock-script','usage':{'input_tokens':0,'output_tokens':0},
+                        'answers':{'present':{'type':'noul','noul':.01}}}
+        c=Empty();r=detect_masked(source,c,recenter=True,search_caption='short')
+        self.assertNotIn('excluded_boxes',c.instructions)
+        self.assertEqual(r['experiment'],'masked_search_recenter_only_v1')
+        c=Empty();r=detect_masked(source,c,recenter=False,search_caption='baseline')
+        self.assertIn('excluded_boxes',c.instructions)
+        self.assertEqual(r['experiment'],'masked_search_caption_only_v1')
+
+    def test_correspondence_identifiability_is_not_overridden_by_high_box_confidence(self):
+        source=prepare(png_bytes(Image.new('RGB',(800,600),'white')))
+        target=Box(.1,.1,.3,.4);tile,region=proposal_crop(source.original,target)
+        l,t,r,b=target.pixels(*source.original.size)
+        local=Box((l-region[0])/tile.original.width,(t-region[1])/tile.original.height,
+                  (r-region[0])/tile.original.width,(b-region[1])/tile.original.height)
+        class Replay:
+            mode='mock';calls=0
+            def _ask(self,t,unused,factory,nq):
+                self.calls+=1
+                a={'present':{'type':'noul','noul':.99},'card':{'type':'box','confidence':.99,
+                    'box':(target if self.calls==1 else tile.to_prepared(local)).json()}}
+                if self.calls==2:
+                    self_test.assertEqual(nq,4)
+                    self_test.assertEqual(len(factory([], 'original')['assets']),2)
+                    a.update(single={'type':'noul','noul':.99},same_target={'type':'noul','noul':.1})
+                return {'model':'mock-script','usage':{'input_tokens':0,'output_tokens':0},'answers':a}
+        self_test=self
+        r=detect_masked(source,Replay(),correspondence=True)
+        self.assertEqual(r['detections'],[])
+        self.assertEqual(r['api_calls'],2)
+        self.assertIn('target_correspondence_unresolved',r['candidates'][-1]['reasons'])
 
 
 if __name__=='__main__':unittest.main()
