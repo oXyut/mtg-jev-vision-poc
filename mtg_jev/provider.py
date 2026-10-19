@@ -64,12 +64,18 @@ class JevClient:
         self.opener = urllib.request.build_opener(NoRedirect())
 
     def ask(self, prepared, excluded):
+        return self._ask(prepared, excluded, request_document)
+
+    def ask_partition(self, prepared):
+        return self._ask(prepared, [], partition_document)
+
+    def _ask(self, prepared, excluded, document_factory):
         reservation = (self.input_tokens + RESERVED_INPUT_PER_REQUEST) * PRICE_PER_MILLION_INPUT / 1e6
         if self.calls >= self.approval.max_requests:
             raise ProviderError("Request limit reached")
         if reservation > self.approval.budget_usd:
             raise ProviderError("Estimated cost reservation exceeds approved budget")
-        body, content_type = multipart(prepared, excluded)
+        body, content_type = multipart(prepared, excluded, document_factory)
         request = urllib.request.Request(ENDPOINT, data=body, method="POST", headers={
             "Authorization": f"Bearer {self._key}",
             "TypeSafe-Danger-Zone-Images": "true",
@@ -118,9 +124,34 @@ def request_document(excluded, reference):
     }
 
 
-def multipart(prepared, excluded):
+def partition_document(excluded, reference):
+    """A separate count-gated experiment; no stateful exclusion or target count."""
+    return {
+        "model": MODEL, "state": {"photo": reference},
+        "assets": {reference: {"type": "image", "part": "photo"}},
+        "questions": {
+            "present": {"type": "noul", "instructions": (
+                "Is any Magic: The Gathering card visibly present in the photo? "
+                "Include rotated, overlapping, and partly visible cards and "
+                "card fragments at the image boundary. Ignore dice and background.")},
+            "count": {"type": "choice", "instructions": (
+                "How many distinct physical Magic: The Gathering cards are visible "
+                "in the photo? Count rotated, overlapping, and partly visible cards, "
+                "including card fragments at the image boundary. Ignore dice and background."),
+                "criteria": {"none": "No visible card", "one": "Exactly one visible card",
+                             "several": "More than one distinct visible card"}},
+            "card": {"type": "box", "instructions": (
+                "The single Magic: The Gathering card in the photo. Return the tight "
+                "axis-aligned box of its visible printed card area. Exclude the blue "
+                "sleeve, dice, and background. Do not infer edges hidden by another "
+                "card or outside the image.")},
+        },
+    }
+
+
+def multipart(prepared, excluded, document_factory=request_document):
     reference = str(uuid.uuid4())
-    document = json.dumps(request_document(excluded, reference), allow_nan=False).encode()
+    document = json.dumps(document_factory(excluded, reference), allow_nan=False).encode()
     boundary = "mtg-jev-" + uuid.uuid4().hex
     body = (f"--{boundary}\r\nContent-Disposition: form-data; name=\"request\"\r\n"
             "Content-Type: application/json\r\n\r\n").encode() + document
