@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from mtg_jev.batch import (BatchSettings, count_document, detect_batch, ranked_document)
+from mtg_jev.batch import (BatchSettings, count_document, detect_batch, ranked_document, short_ranked_document)
 from mtg_jev.geometry import Box
 from mtg_jev.images import png_bytes, prepare
 from mtg_jev.provider import JevClient, LiveApproval, ProviderError, multipart
@@ -119,6 +119,14 @@ class BatchTests(unittest.TestCase):
         slots = slots_answer(self.boxes[:1])
         slots['answers']['slot_01_box']['box'] = [self.boxes[0].json(), self.boxes[1].json()]
         self.assertEqual(detect_batch(self.prepared, Script(count_answer(1), slots))['status'], 'error')
+
+    def test_speculative_capacity_always_has_per_slot_existence(self):
+        doc = short_ranked_document('opaque', 16)
+        self.assertEqual(len(doc['questions']), 32)
+        self.assertEqual(len(doc['assets']), 1)
+        for rank in range(1,17):
+            self.assertIn(f'at least {rank}', doc['questions'][f'slot_{rank:02d}_present']['instructions'])
+            self.assertIn(f'position {rank}', doc['questions'][f'slot_{rank:02d}_box']['instructions'])
 
     def test_new_approval_ceiling_and_question_scaled_reservation(self):
         with patch.dict(os.environ, {'MTG_JEV_ENABLE_LIVE': '1', 'TYPESAFE_API_KEY': 'unit-test-placeholder'}):

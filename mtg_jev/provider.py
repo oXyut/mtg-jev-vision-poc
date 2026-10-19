@@ -77,6 +77,10 @@ class JevClient:
         from .batch import ranked_document
         return self._ask(prepared, [], lambda unused, ref: ranked_document(ref, count), 2*count)
 
+    def ask_speculative(self, prepared, capacity=16):
+        from .batch import short_ranked_document
+        return self._ask(prepared, [], lambda unused, ref: short_ranked_document(ref, capacity), 2*capacity)
+
     def _ask(self, prepared, excluded, document_factory, reserved_questions=1):
         reservation = (self.input_tokens + RESERVED_INPUT_PER_REQUEST*reserved_questions) * PRICE_PER_MILLION_INPUT / 1e6
         if self.calls >= self.approval.max_requests:

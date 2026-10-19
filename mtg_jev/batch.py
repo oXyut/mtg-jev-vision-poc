@@ -72,6 +72,18 @@ def ranked_document(reference, count):
     return image_document(reference, questions)
 
 
+def short_ranked_document(reference, capacity=16):
+    """Separate speculative experiment. Existence gates every generic slot."""
+    validate_capacity(capacity)
+    questions = {}
+    for rank in range(1, capacity+1):
+        questions[f'slot_{rank:02d}_present'] = {
+            'type': 'noul', 'instructions': f'Are at least {rank} distinct Magic: The Gathering cards visible in the photo, including partly occluded cards?'}
+        questions[f'slot_{rank:02d}_box'] = {
+            'type': 'box', 'instructions': f'The Magic: The Gathering card at position {rank}, counting the cards from left to right. Include rotated and partly occluded cards. Locate only this individual card.'}
+    return image_document(reference, questions)
+
+
 def read_count(response, settings):
     a = response['answers']
     if set(a) != {'present', 'count'} or a['present']['type'] != 'noul' or a['count']['type'] != 'choice':
