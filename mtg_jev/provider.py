@@ -30,13 +30,13 @@ class LiveApproval:
     def validate(self):
         if not self.approve_live or os.environ.get("MTG_JEV_ENABLE_LIVE") != "1":
             raise ValueError("Live disabled: approval flag and MTG_JEV_ENABLE_LIVE=1 required")
-        if type(self.max_requests) is not int or not 1 <= self.max_requests <= 30:
-            raise ValueError("max_requests must be 1..30")
+        if type(self.max_requests) is not int or not 1 <= self.max_requests <= 10_000:
+            raise ValueError("max_requests must be 1..10000")
         if isinstance(self.budget_usd, bool) or not isinstance(self.budget_usd, (int, float)):
             raise ValueError("Invalid budget")
         import math
-        if not math.isfinite(self.budget_usd) or not 0 < self.budget_usd <= 1:
-            raise ValueError("Explicit budget_usd in (0, 1] required")
+        if not math.isfinite(self.budget_usd) or not 0 < self.budget_usd <= 5:
+            raise ValueError("Explicit budget_usd in (0, 5] required")
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -69,8 +69,16 @@ class JevClient:
     def ask_partition(self, prepared):
         return self._ask(prepared, [], partition_document)
 
-    def _ask(self, prepared, excluded, document_factory):
-        reservation = (self.input_tokens + RESERVED_INPUT_PER_REQUEST) * PRICE_PER_MILLION_INPUT / 1e6
+    def ask_count(self, prepared, capacity=16):
+        from .batch import count_document
+        return self._ask(prepared, [], lambda unused, ref: count_document(ref, capacity), 2)
+
+    def ask_ranked(self, prepared, count):
+        from .batch import ranked_document
+        return self._ask(prepared, [], lambda unused, ref: ranked_document(ref, count), 2*count)
+
+    def _ask(self, prepared, excluded, document_factory, reserved_questions=1):
+        reservation = (self.input_tokens + RESERVED_INPUT_PER_REQUEST*reserved_questions) * PRICE_PER_MILLION_INPUT / 1e6
         if self.calls >= self.approval.max_requests:
             raise ProviderError("Request limit reached")
         if reservation > self.approval.budget_usd:
