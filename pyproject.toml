@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mtg-jev-vision-poc"
+version = "0.1.0"
+description = "Experimental Jev 1.14 MTG card localization with explicit mock evidence"
+requires-python = ">=3.11"
+dependencies = ["Pillow==12.3.0"]
+
+[project.scripts]
+mtg-jev = "mtg_jev.cli:main"
+
+[tool.setuptools]
+packages = ["mtg_jev"]
+
+[tool.setuptools.package-data]
+mtg_jev = ["web.html"]
