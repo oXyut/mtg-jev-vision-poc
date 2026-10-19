@@ -1,13 +1,13 @@
 # MTG × Jev vision PoC
 
-Jev 1.14の画像入力とBoxで、複数のMTGカードの位置を検出できるか調べるPoCです。**確認済みの範囲は、合成矩形の台本再生と、架空タイトルの自作文字画像へのローカルOCRです。実MTGカードの検出・同定精度は未実測です。**
+Jev 1.14の画像入力とBoxで、複数のMTGカードの位置を検出できるか調べるPoCです。**実写真2枚の初回検証では、各1/8枚を検出後に低確信で停止し、実用目標は未達です。実カード名の同定精度は未評価です。** [固定条件と実測結果](docs/live-baseline.md)を参照してください。
 
 | 機能 | 状態 |
 | --- | --- |
 | CLI・モック専用Web UI・box重畳・JSON保存 | 実装済み、API不要 |
 | 手動正解box・IoU / precision / recall / F1 | 実装済み |
-| Jev HTTPアダプター | スタブ検証のみ。実API未実行 |
-| 実MTGカードの検出精度 | 未評価 |
+| Jev HTTPアダプター | 画像付き実APIで認証・推論成功。Network secret＋環境proxyで実測 |
+| 実MTGカードの検出精度 | 2写真ともTP=1、FP=0、FN=7。低Box確信でincomplete停止 |
 | cropから名前OCR・候補検索・unknown判定 | [Issue #2](https://github.com/oXyut/mtg-jev-vision-poc/issues/2)、ローカルCLIを実装。実カードは未評価 |
 | 動画・リアルタイム表示 | [Issue #3](https://github.com/oXyut/mtg-jev-vision-poc/issues/3)、未実装 |
 
@@ -82,15 +82,15 @@ python -m mtg_jev evaluate results/multiple/result.json \
 
 JSONにはmode、evidence、画像サイズ、前処理変換、閾値、要求/応答モデル、終了理由、API呼出数、usage、推定費用を記録します。ファイル名・元パス・リクエスト本文・画像base64・APIキーは含めません。位置とカード名の精度は別々に評価します。
 
-## 実APIは未実行
+## 実APIの初回結果と実行条件
 
-現在の実API呼出しは0件、費用は$0です。実行前に次を揃えてください。
+2026-10-19の初回実測は計4呼出し、入力20,417／出力144 token、文書記載料金による推定費用US$0.000857514でした。請求額の確定値ではありません。追加の実行でも次を揃えてください。
 
 1. 権利と外部送信許可を確認したPNG/JPEG、および手動正解box。
 2. 承認済みの費用枠・リクエスト回数上限。
 3. PoC専用環境での安全なキー供給。既存の別プロジェクト環境へ追加しないこと。
 
-このアダプターは`TYPESAFE_API_KEY`をopaqueな値として受け取り、固定HTTPSエンドポイントのBearerヘッダーへ入れます。CloudのNetwork secretで渡されるプレースホルダーにもコード上は互換性があり、環境のHTTPSプロキシを利用します。置換そのものはCloud側の機能で、実環境での置換・TypeSafe認証は未検証です。[仕様とキーなし検証](docs/network-secrets.md)を参照してください。`.env`を自動読込せず、キーを探しません。値が未設定なら停止し、認証なしfallbackは行いません。コマンドライン引数へキーを渡さないでください。
+このアダプターは`TYPESAFE_API_KEY`をopaqueな値として受け取り、固定HTTPSエンドポイントのBearerヘッダーへ入れます。CloudのNetwork secretで渡されるプレースホルダーと環境のHTTPSプロキシを使い、今回の専用環境ではTypeSafe認証と画像推論が成功しました。置換そのものはCloud側の機能です。[仕様とキーなし検証](docs/network-secrets.md)を参照してください。`.env`を自動読込せず、キーを探しません。値が未設定なら停止し、認証なしfallbackは行いません。コマンドライン引数へキーを渡さないでください。
 
 承認後の実行形（キー値は記載しません）:
 
