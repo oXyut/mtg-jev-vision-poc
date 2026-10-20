@@ -1,10 +1,18 @@
 import unittest
+import importlib.util
+from pathlib import Path
 
 from mtg_jev import camera_prompts
 from mtg_jev.prompt_factorial import BASE, CONDITIONS, ELIGIBILITY, factories, instructions, schedule
 
 
 class PromptFactorialTests(unittest.TestCase):
+    def experiment(self, filename):
+        spec = importlib.util.spec_from_file_location(filename, Path(__file__).resolve().parents[1]/'experiments'/filename)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
     def test_baseline_is_the_actual_current_multi_instructions(self):
         search, crop = factories('mtg_plain')
         self.assertEqual(search([], 'image'), camera_prompts.search_document([], 'image'))
@@ -41,6 +49,31 @@ class PromptFactorialTests(unittest.TestCase):
                     positions.append(order.index(condition))
                 self.assertEqual(set(positions), {0, 1, 2, 3})
         self.assertEqual(schedule(), schedule())
+
+    def test_continuation_keeps_original_cost_call_limits_and_rejects_unknown_or_reordered(self):
+        module = self.experiment('run_camera_prompt_factorial.py')
+        plan = {'schedule': schedule(1), 'phase_http_cap': 384, 'phase_estimated_usd_cap': .05}
+        runs = [{**plan['schedule'][0], 'http': 1}]
+        http = [{'status': 'response_with_usage', 'usage': {'input_tokens': 1000, 'output_tokens': 30}}]
+        summary = {'pending': 0, 'failed_or_uncertain': 0, 'budget': {'halt_reason': None}}
+        calls, budget = module.remaining_plan(plan, runs, http, summary)
+        self.assertEqual(calls, 383)
+        self.assertAlmostEqual(budget, .05-.000042)
+        for bad in [{**summary, 'pending': 1}, {**summary, 'failed_or_uncertain': 1}]:
+            with self.assertRaises(ValueError): module.remaining_plan(plan, runs, http, bad)
+        with self.assertRaises(ValueError): module.remaining_plan(plan, [{**runs[0], 'condition': 'generic_explicit'}], http, summary)
+
+    def test_raw_duplicate_predictions_are_separate_from_unique_truth_and_other_false_positives(self):
+        module = self.experiment('score_camera_prompt_factorial.py')
+        from mtg_jev.geometry import COORDINATES, Box
+        a, b, wrong = Box(.1,.1,.3,.4).json(), Box(.6,.6,.8,.9).json(), Box(.4,.1,.5,.2).json()
+        result = {'coordinate_system': COORDINATES, 'image': {'width': 800, 'height': 600}}
+        truth = {**result, 'boxes': [a, b]}
+        score = module.evaluate_layer([{'box':a},{'box':a},{'box':wrong}], result, truth, .5)
+        self.assertEqual((score['tp'], score['fp'], score['fn']), (1, 2, 1))
+        self.assertEqual(score['duplicate_truth_predictions'], 1)
+        self.assertEqual(score['geometric_unique_groups'], 2)
+        self.assertEqual(score['geometric_duplicate_pairs'], 1)
 
 
 if __name__ == '__main__':

@@ -64,3 +64,8 @@ Generic target is exactly “trading card”; “card used in a card game” is 
 
 ## Acceptance
 Preserve all four outcomes even if worse, separate single-run from repeat-stable differences, retain recognition failures distinctly from connection/usage blockers, and leave 8-card goal unmet unless measurements actually meet it.
+
+
+## Pre-scoring continuation note
+
+After the first complete eight-run block, the runner stopped on a known-usage malformed model Box (zero area) in mtg_explicit / scene-B. Offline replay reproduced the same geometry error, with no API calls. No truth was read. This is a model-answer failure, not a connection/free-balance/usage failure. Keep that partial frame and its error in the comparison; do not rerun it or exclude it. The remaining pre-planned runs may continue only after verifying the exact saved prefix and durable known usage. Deduct all prior calls/cost from the original 384 HTTP / US$0.05 phase limits. The core detector, prompts and final gates stay fixed. Provider errors, unknown usage, pending or budget/call limits still stop the phase. See the pre-continuation record in Issue #23.

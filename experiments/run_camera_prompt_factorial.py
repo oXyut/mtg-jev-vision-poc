@@ -25,12 +25,26 @@ def write_json(path, value):
     temporary.replace(path)
 
 
+def remaining_plan(protocol, runs, http, summary):
+    """Resume only an exact completed prefix with every HTTP outcome known."""
+    if summary['pending'] or summary['failed_or_uncertain'] or summary['budget']['halt_reason']:
+        raise ValueError('Unresolved usage/provider state; cannot continue')
+    if any(h['status'] != 'response_with_usage' for h in http):
+        raise ValueError('Unknown HTTP outcome; cannot continue')
+    prefix = [{k: r[k] for k in ('repeat', 'scene', 'condition')} for r in runs]
+    if prefix != protocol['schedule'][:len(runs)] or sum(r['http'] for r in runs) != len(http):
+        raise ValueError('Completed prefix or HTTP total differs')
+    spent = sum(h['usage']['input_tokens'] for h in http)*PRICE_PER_MILLION_INPUT/1e6
+    return protocol['phase_http_cap']-len(http), protocol['phase_estimated_usd_cap']-spent
+
+
 def run(args):
     # These limits are the pre-registered upper bounds, not a general benchmark CLI.
     if not 0 < args.budget_usd <= .05 or not 1 <= args.max_requests <= 384:
         raise ValueError('Limit exceeds Issue #23 scope')
     out = Path(args.output).resolve()
-    if (out/'live-started.json').exists():
+    continuing = (out/'live-started.json').exists()
+    if continuing and not args.continue_planned:
         raise ValueError('Run already started; inspect outcome, never replay')
     out.mkdir(parents=True, exist_ok=True)
     images = {}
@@ -51,7 +65,11 @@ def run(args):
                 'provider_seed_temperature': 'unset for every condition; adapter exposes neither',
                 'recenter': True, 'search_caption': 'short', 'verify_uncertain_proposals': True,
                 'mask_settings': vars(MaskSettings()), 'ground_truth_access': False}
-    write_json(out/'protocol.json', protocol)
+    if continuing:
+        if json.loads((out/'protocol.json').read_text()) != protocol:
+            raise ValueError('Frozen protocol differs; cannot continue')
+    else:
+        write_json(out/'protocol.json', protocol)
     if not args.approve_live:
         print(json.dumps({'plan_only': True, 'frame_runs': len(protocol['schedule']),
                           'phase_http_cap': args.max_requests, 'phase_usd_cap': args.budget_usd}))
@@ -64,6 +82,17 @@ def run(args):
                 raise RuntimeError('Truth access forbidden during inference')
     sys.addaudithook(audit)
     current, http, results = {}, [], []
+    remaining_requests, remaining_budget = args.max_requests, args.budget_usd
+    if continuing:
+        http = json.loads((out/'http.json').read_text())
+        results = json.loads((out/'runs.json').read_text())
+        previous = json.loads((out/'summary.json').read_text())
+        remaining_requests, remaining_budget = remaining_plan(protocol, results, http, previous)
+        if len(results) >= len(protocol['schedule']) or remaining_requests <= 0 or remaining_budget <= 0:
+            raise ValueError('No planned work or budget remains')
+        for r in results:
+            if not (out/f"r{r['repeat']}-{r['scene']}-{r['condition']}.json").exists():
+                raise ValueError('Completed prediction missing')
 
     class Logged(JevClient):
         def _ask(self, image, excluded, factory, questions=1):
@@ -97,12 +126,25 @@ def run(args):
                             'presence': response['answers'].get('present', {}).get('noul'), 'http': attempt})
             return response
 
-    state = CameraState(CameraConfig(mode='live', approve_live=True, max_requests=args.max_requests,
-        budget_usd=args.budget_usd, usage_ledger=str(out/'usage.json'), prior_spend_usd=args.prior_spend_usd,
+    state = CameraState(CameraConfig(mode='live', approve_live=True, max_requests=remaining_requests,
+        budget_usd=remaining_budget, usage_ledger=str(out/'usage.json'), prior_spend_usd=args.prior_spend_usd,
         min_interval_seconds=0, max_cards=16, frame_max_requests=64), Logged)
-    write_json(out/'live-started.json', protocol)
+    if continuing:
+        expected_tokens = {k: sum(h['usage'][k] for h in http) for k in ('input_tokens', 'output_tokens')}
+        if state.initial_calls != len(http) or any(state.ledger.data[k] != v for k, v in expected_tokens.items()):
+            state.close()
+            raise ValueError('Durable ledger differs from saved HTTP records')
+        from mtg_jev.camera_usage import utc_now
+        name = out/'continuations.json'
+        history = json.loads(name.read_text()) if name.exists() else []
+        history.append({'at': utc_now(), 'completed_prefix': len(results), 'http_before': len(http),
+                        'remaining_requests': remaining_requests, 'remaining_budget_usd': remaining_budget,
+                        'reason': 'known-usage malformed model box; next planned run, no replay'})
+        write_json(name, history)
+    else:
+        write_json(out/'live-started.json', protocol)
     try:
-        for run_spec in protocol['schedule']:
+        for run_spec in protocol['schedule'][len(results):]:
             search, crop = factories(run_spec['condition'])
             current.update(run=run_spec, search_factory=search, raw_search=[])
             client = AccountedFrameClient(state, threading.Event())
@@ -126,13 +168,14 @@ def run(args):
                    'stop_reason': result['stop_reason'], 'status': result['status']}
             results.append(row); write_json(out/'runs.json', results)
             print(json.dumps(row), flush=True)
-            if state.halt_reason or client.stop_reason or result['status'] == 'error':
+            if state.halt_reason or client.stop_reason:
                 break  # Stop the phase; no implicit request or retry.
     finally:
         write_json(out/'summary.json', {'frame_runs': len(results), 'planned_frame_runs': len(protocol['schedule']),
             'http': len(http), 'usage': {k: sum(h.get('usage', {}).get(k, 0) for h in http)
                                        for k in ('input_tokens', 'output_tokens')},
             'budget': state.snapshot()['budget'], 'mac_usage_included': False,
+            'phase_estimated_spend_usd': sum(h.get('usage', {}).get('input_tokens', 0) for h in http)*PRICE_PER_MILLION_INPUT/1e6,
             'pending': sum(h['status'] == 'pending' for h in http),
             'failed_or_uncertain': sum(h['status'] != 'response_with_usage' for h in http)})
         state.close()
@@ -148,4 +191,5 @@ if __name__ == '__main__':
     parser.add_argument('--max-requests', type=int, default=384)
     parser.add_argument('--budget-usd', type=float, default=.05)
     parser.add_argument('--approve-live', action='store_true')
+    parser.add_argument('--continue-planned', action='store_true', help='Continue only unexecuted runs after known-usage model answer failure')
     run(parser.parse_args())
