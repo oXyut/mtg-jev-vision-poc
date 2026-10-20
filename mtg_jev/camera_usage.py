@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from .provider import PRICE_PER_MILLION_INPUT
 
 LEDGER_MINIMUM_PRIOR_USD = .025210836  # Original schema-1 books remain readable.
-POC_SPENT_BEFORE_CAMERA = .028548786  # Known Cloud only; preserves local usage separately.
+POC_SPENT_BEFORE_CAMERA = .049285530  # Known Cloud only; preserves local usage separately.
 POC_LIMIT_USD = 5.0
 
 

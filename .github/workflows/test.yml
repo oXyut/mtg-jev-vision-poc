@@ -1,7 +1,7 @@
 name: Offline tests
 on:
   push:
-    branches: ['feat/**', 'fix/**']
+    branches: ['feat/**', 'fix/**', 'experiment/**']
   pull_request:
     branches: [main]
 permissions:

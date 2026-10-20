@@ -1,0 +1,2487 @@
+{
+  "issue": 23,
+  "repeats_per_cell": 4,
+  "complete_repeats": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "aggregate": [
+    {
+      "scene": "scene-A",
+      "condition": "mtg_plain",
+      "repeats": 4,
+      "layers": {
+        "search_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 0.5,
+              "min": 0,
+              "max": 1
+            },
+            "fn": {
+              "mean": 6.5,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2,
+              "min": 1,
+              "max": 3
+            },
+            "mean_matched_iou": {
+              "mean": 0.8645408877074403,
+              "min": 0.8069132239476411,
+              "max": 0.9017425375981852
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 2,
+              "min": 1,
+              "max": 3
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 1.25,
+              "min": 1,
+              "max": 2
+            },
+            "fp": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 1
+            },
+            "fn": {
+              "mean": 6.75,
+              "min": 6,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2,
+              "min": 1,
+              "max": 3
+            },
+            "mean_matched_iou": {
+              "mean": 0.8877362496395589,
+              "min": 0.8747538946419675,
+              "max": 0.9017425375981852
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 2,
+              "min": 1,
+              "max": 3
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        },
+        "crop_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 1.75,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 2
+            },
+            "fn": {
+              "mean": 6.25,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2.5,
+              "min": 1,
+              "max": 3
+            },
+            "mean_matched_iou": {
+              "mean": 0.9010550549654269,
+              "min": 0.8834044651062424,
+              "max": 0.9181221692699203
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.25,
+              "min": 0,
+              "max": 1
+            },
+            "geometric_unique_groups": {
+              "mean": 2.25,
+              "min": 1,
+              "max": 3
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0.25,
+              "min": 0,
+              "max": 1
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 1.75,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 2
+            },
+            "fn": {
+              "mean": 6.25,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2.5,
+              "min": 1,
+              "max": 3
+            },
+            "mean_matched_iou": {
+              "mean": 0.9010550549654269,
+              "min": 0.8834044651062424,
+              "max": 0.9181221692699203
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.25,
+              "min": 0,
+              "max": 1
+            },
+            "geometric_unique_groups": {
+              "mean": 2.25,
+              "min": 1,
+              "max": 3
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0.25,
+              "min": 0,
+              "max": 1
+            }
+          }
+        },
+        "adopted": {
+          "0.5": {
+            "tp": {
+              "mean": 1,
+              "min": 0,
+              "max": 2
+            },
+            "fp": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "fn": {
+              "mean": 7,
+              "min": 6,
+              "max": 8
+            },
+            "proposals": {
+              "mean": 1,
+              "min": 0,
+              "max": 2
+            },
+            "mean_matched_iou": {
+              "mean": 0.9116979644541049,
+              "min": 0.8988495548224742,
+              "max": 0.9181221692699203
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 1,
+              "min": 0,
+              "max": 2
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 1,
+              "min": 0,
+              "max": 2
+            },
+            "fp": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "fn": {
+              "mean": 7,
+              "min": 6,
+              "max": 8
+            },
+            "proposals": {
+              "mean": 1,
+              "min": 0,
+              "max": 2
+            },
+            "mean_matched_iou": {
+              "mean": 0.9116979644541049,
+              "min": 0.8988495548224742,
+              "max": 0.9181221692699203
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 1,
+              "min": 0,
+              "max": 2
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        }
+      },
+      "seconds": {
+        "mean": 2.75519275,
+        "min": 1.259494,
+        "max": 3.514027
+      },
+      "http": {
+        "mean": 4.5,
+        "min": 2,
+        "max": 6
+      },
+      "estimated_cost_usd": {
+        "mean": 0.000401373,
+        "min": 0.00018345600000000003,
+        "max": 0.000572124
+      },
+      "per_repeat_tp50": [
+        1,
+        0,
+        1,
+        2
+      ],
+      "per_repeat_tp75": [
+        1,
+        0,
+        1,
+        2
+      ],
+      "invalid_raw_boxes": {
+        "search_raw": 0,
+        "crop_raw": 0
+      },
+      "answer_error_frames": 0
+    },
+    {
+      "scene": "scene-A",
+      "condition": "mtg_explicit",
+      "repeats": 4,
+      "layers": {
+        "search_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fn": {
+              "mean": 7,
+              "min": 7,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2,
+              "min": 2,
+              "max": 2
+            },
+            "mean_matched_iou": {
+              "mean": 0.8706008232185393,
+              "min": 0.822018338829123,
+              "max": 0.932992494859262
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 2,
+              "min": 2,
+              "max": 2
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fn": {
+              "mean": 7,
+              "min": 7,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2,
+              "min": 2,
+              "max": 2
+            },
+            "mean_matched_iou": {
+              "mean": 0.8706008232185393,
+              "min": 0.822018338829123,
+              "max": 0.932992494859262
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 2,
+              "min": 2,
+              "max": 2
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        },
+        "crop_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fn": {
+              "mean": 7,
+              "min": 7,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2,
+              "min": 2,
+              "max": 2
+            },
+            "mean_matched_iou": {
+              "mean": 0.8953329640174085,
+              "min": 0.8579498629189095,
+              "max": 0.9255300005698199
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 1
+            },
+            "geometric_unique_groups": {
+              "mean": 2,
+              "min": 2,
+              "max": 2
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fn": {
+              "mean": 7,
+              "min": 7,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2,
+              "min": 2,
+              "max": 2
+            },
+            "mean_matched_iou": {
+              "mean": 0.8953329640174085,
+              "min": 0.8579498629189095,
+              "max": 0.9255300005698199
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.5,
+              "min": 0,
+              "max": 1
+            },
+            "geometric_unique_groups": {
+              "mean": 2,
+              "min": 2,
+              "max": 2
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        },
+        "adopted": {
+          "0.5": {
+            "tp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fp": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "fn": {
+              "mean": 7,
+              "min": 7,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "mean_matched_iou": {
+              "mean": 0.8953329640174085,
+              "min": 0.8579498629189095,
+              "max": 0.9255300005698199
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fp": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "fn": {
+              "mean": 7,
+              "min": 7,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "mean_matched_iou": {
+              "mean": 0.8953329640174085,
+              "min": 0.8579498629189095,
+              "max": 0.9255300005698199
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        }
+      },
+      "seconds": {
+        "mean": 2.5471624999999998,
+        "min": 2.1668879999999997,
+        "max": 2.791537
+      },
+      "http": {
+        "mean": 4,
+        "min": 4,
+        "max": 4
+      },
+      "estimated_cost_usd": {
+        "mean": 0.000404166,
+        "min": 0.00037010400000000006,
+        "max": 0.00041710200000000003
+      },
+      "per_repeat_tp50": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "per_repeat_tp75": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "invalid_raw_boxes": {
+        "search_raw": 0,
+        "crop_raw": 0
+      },
+      "answer_error_frames": 0
+    },
+    {
+      "scene": "scene-A",
+      "condition": "generic_plain",
+      "repeats": 4,
+      "layers": {
+        "search_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fn": {
+              "mean": 6.5,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2.5,
+              "min": 2,
+              "max": 4
+            },
+            "mean_matched_iou": {
+              "mean": 0.8112376142196691,
+              "min": 0.7660594888350637,
+              "max": 0.8922762139095447
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 2.5,
+              "min": 2,
+              "max": 4
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fn": {
+              "mean": 6.5,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2.5,
+              "min": 2,
+              "max": 4
+            },
+            "mean_matched_iou": {
+              "mean": 0.8112376142196691,
+              "min": 0.7660594888350637,
+              "max": 0.8922762139095447
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 2.5,
+              "min": 2,
+              "max": 4
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        },
+        "crop_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fn": {
+              "mean": 6.5,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2.5,
+              "min": 2,
+              "max": 4
+            },
+            "mean_matched_iou": {
+              "mean": 0.8804244668934368,
+              "min": 0.8515820566733284,
+              "max": 0.912548937681001
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.5,
+              "min": 0,
+              "max": 1
+            },
+            "geometric_unique_groups": {
+              "mean": 2.5,
+              "min": 2,
+              "max": 4
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fn": {
+              "mean": 6.5,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2.5,
+              "min": 2,
+              "max": 4
+            },
+            "mean_matched_iou": {
+              "mean": 0.8804244668934368,
+              "min": 0.8515820566733284,
+              "max": 0.912548937681001
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.25,
+              "min": 0,
+              "max": 1
+            },
+            "geometric_unique_groups": {
+              "mean": 2.5,
+              "min": 2,
+              "max": 4
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        },
+        "adopted": {
+          "0.5": {
+            "tp": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "fn": {
+              "mean": 6.5,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "mean_matched_iou": {
+              "mean": 0.8804244668934368,
+              "min": 0.8515820566733284,
+              "max": 0.912548937681001
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "fn": {
+              "mean": 6.5,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "mean_matched_iou": {
+              "mean": 0.8804244668934368,
+              "min": 0.8515820566733284,
+              "max": 0.912548937681001
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        }
+      },
+      "seconds": {
+        "mean": 3.106688,
+        "min": 2.579516,
+        "max": 4.487337
+      },
+      "http": {
+        "mean": 5,
+        "min": 4,
+        "max": 8
+      },
+      "estimated_cost_usd": {
+        "mean": 0.0004852995,
+        "min": 0.000402024,
+        "max": 0.000731178
+      },
+      "per_repeat_tp50": [
+        1,
+        3,
+        1,
+        1
+      ],
+      "per_repeat_tp75": [
+        1,
+        3,
+        1,
+        1
+      ],
+      "invalid_raw_boxes": {
+        "search_raw": 0,
+        "crop_raw": 0
+      },
+      "answer_error_frames": 0
+    },
+    {
+      "scene": "scene-A",
+      "condition": "generic_explicit",
+      "repeats": 4,
+      "layers": {
+        "search_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 1
+            },
+            "fn": {
+              "mean": 6.5,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2.25,
+              "min": 2,
+              "max": 3
+            },
+            "mean_matched_iou": {
+              "mean": 0.8472420524322928,
+              "min": 0.7841778646609653,
+              "max": 0.9053025484336857
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 2.25,
+              "min": 2,
+              "max": 3
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 1.25,
+              "min": 1,
+              "max": 2
+            },
+            "fp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fn": {
+              "mean": 6.75,
+              "min": 6,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2.25,
+              "min": 2,
+              "max": 3
+            },
+            "mean_matched_iou": {
+              "mean": 0.8675954944535769,
+              "min": 0.7941852482008344,
+              "max": 0.9053025484336857
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 2.25,
+              "min": 2,
+              "max": 3
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        },
+        "crop_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "fn": {
+              "mean": 6.5,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 3,
+              "min": 2,
+              "max": 6
+            },
+            "mean_matched_iou": {
+              "mean": 0.9127112577830228,
+              "min": 0.8832954114270554,
+              "max": 0.9233295847643358
+            },
+            "duplicate_truth_predictions": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "geometric_unique_groups": {
+              "mean": 2.75,
+              "min": 1,
+              "max": 6
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0.25,
+              "min": 0,
+              "max": 1
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 3
+            },
+            "fn": {
+              "mean": 6.5,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 3,
+              "min": 2,
+              "max": 6
+            },
+            "mean_matched_iou": {
+              "mean": 0.9127112577830228,
+              "min": 0.8832954114270554,
+              "max": 0.9233295847643358
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 1
+            },
+            "geometric_unique_groups": {
+              "mean": 2.75,
+              "min": 1,
+              "max": 6
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0.25,
+              "min": 0,
+              "max": 1
+            }
+          }
+        },
+        "adopted": {
+          "0.5": {
+            "tp": {
+              "mean": 1.25,
+              "min": 1,
+              "max": 2
+            },
+            "fp": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "fn": {
+              "mean": 6.75,
+              "min": 6,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 1.25,
+              "min": 1,
+              "max": 2
+            },
+            "mean_matched_iou": {
+              "mean": 0.9079543831604944,
+              "min": 0.8642679129369418,
+              "max": 0.9233295847643358
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 1.25,
+              "min": 1,
+              "max": 2
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 1.25,
+              "min": 1,
+              "max": 2
+            },
+            "fp": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "fn": {
+              "mean": 6.75,
+              "min": 6,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 1.25,
+              "min": 1,
+              "max": 2
+            },
+            "mean_matched_iou": {
+              "mean": 0.9079543831604944,
+              "min": 0.8642679129369418,
+              "max": 0.9233295847643358
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 1.25,
+              "min": 1,
+              "max": 2
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        }
+      },
+      "seconds": {
+        "mean": 3.15374875,
+        "min": 2.503454,
+        "max": 4.779554
+      },
+      "http": {
+        "mean": 5.25,
+        "min": 4,
+        "max": 9
+      },
+      "estimated_cost_usd": {
+        "mean": 0.000488565,
+        "min": 0.00041475,
+        "max": 0.0007064820000000001
+      },
+      "per_repeat_tp50": [
+        1,
+        1,
+        2,
+        1
+      ],
+      "per_repeat_tp75": [
+        1,
+        1,
+        2,
+        1
+      ],
+      "invalid_raw_boxes": {
+        "search_raw": 0,
+        "crop_raw": 0
+      },
+      "answer_error_frames": 0
+    },
+    {
+      "scene": "scene-B",
+      "condition": "generic_plain",
+      "repeats": 4,
+      "layers": {
+        "search_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 2.5,
+              "min": 2,
+              "max": 3
+            },
+            "fp": {
+              "mean": 1.25,
+              "min": 1,
+              "max": 2
+            },
+            "fn": {
+              "mean": 5.5,
+              "min": 5,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 3.75,
+              "min": 3,
+              "max": 4
+            },
+            "mean_matched_iou": {
+              "mean": 0.8508060441285884,
+              "min": 0.8300452311049353,
+              "max": 0.8699398465619469
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.25,
+              "min": 0,
+              "max": 1
+            },
+            "geometric_unique_groups": {
+              "mean": 3.75,
+              "min": 3,
+              "max": 4
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 2.5,
+              "min": 2,
+              "max": 3
+            },
+            "fp": {
+              "mean": 1.25,
+              "min": 1,
+              "max": 2
+            },
+            "fn": {
+              "mean": 5.5,
+              "min": 5,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 3.75,
+              "min": 3,
+              "max": 4
+            },
+            "mean_matched_iou": {
+              "mean": 0.8508060441285884,
+              "min": 0.8300452311049353,
+              "max": 0.8699398465619469
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 3.75,
+              "min": 3,
+              "max": 4
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        },
+        "crop_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 2.75,
+              "min": 2,
+              "max": 3
+            },
+            "fp": {
+              "mean": 1.75,
+              "min": 1,
+              "max": 2
+            },
+            "fn": {
+              "mean": 5.25,
+              "min": 5,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 4.5,
+              "min": 4,
+              "max": 5
+            },
+            "mean_matched_iou": {
+              "mean": 0.866337957269671,
+              "min": 0.8311600544929937,
+              "max": 0.8866946782771463
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 2
+            },
+            "geometric_unique_groups": {
+              "mean": 4,
+              "min": 3,
+              "max": 5
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0.5,
+              "min": 0,
+              "max": 1
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 2.75,
+              "min": 2,
+              "max": 3
+            },
+            "fp": {
+              "mean": 1.75,
+              "min": 1,
+              "max": 2
+            },
+            "fn": {
+              "mean": 5.25,
+              "min": 5,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 4.5,
+              "min": 4,
+              "max": 5
+            },
+            "mean_matched_iou": {
+              "mean": 0.866337957269671,
+              "min": 0.8311600544929937,
+              "max": 0.8866946782771463
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.5,
+              "min": 0,
+              "max": 1
+            },
+            "geometric_unique_groups": {
+              "mean": 4,
+              "min": 3,
+              "max": 5
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0.5,
+              "min": 0,
+              "max": 1
+            }
+          }
+        },
+        "adopted": {
+          "0.5": {
+            "tp": {
+              "mean": 2.75,
+              "min": 2,
+              "max": 3
+            },
+            "fp": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "fn": {
+              "mean": 5.25,
+              "min": 5,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 2.75,
+              "min": 2,
+              "max": 3
+            },
+            "mean_matched_iou": {
+              "mean": 0.8617557758167834,
+              "min": 0.8311600544929937,
+              "max": 0.8866946782771463
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 2.75,
+              "min": 2,
+              "max": 3
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 2.75,
+              "min": 2,
+              "max": 3
+            },
+            "fp": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "fn": {
+              "mean": 5.25,
+              "min": 5,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 2.75,
+              "min": 2,
+              "max": 3
+            },
+            "mean_matched_iou": {
+              "mean": 0.8617557758167834,
+              "min": 0.8311600544929937,
+              "max": 0.8866946782771463
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 2.75,
+              "min": 2,
+              "max": 3
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        }
+      },
+      "seconds": {
+        "mean": 5.2140985,
+        "min": 3.77171,
+        "max": 5.823082
+      },
+      "http": {
+        "mean": 8.25,
+        "min": 7,
+        "max": 9
+      },
+      "estimated_cost_usd": {
+        "mean": 0.0007504035,
+        "min": 0.0005850180000000001,
+        "max": 0.00083706
+      },
+      "per_repeat_tp50": [
+        3,
+        3,
+        2,
+        3
+      ],
+      "per_repeat_tp75": [
+        3,
+        3,
+        2,
+        3
+      ],
+      "invalid_raw_boxes": {
+        "search_raw": 0,
+        "crop_raw": 0
+      },
+      "answer_error_frames": 0
+    },
+    {
+      "scene": "scene-B",
+      "condition": "generic_explicit",
+      "repeats": 4,
+      "layers": {
+        "search_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 4.5,
+              "min": 1,
+              "max": 8
+            },
+            "fp": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 1
+            },
+            "fn": {
+              "mean": 3.5,
+              "min": 0,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 5.25,
+              "min": 1,
+              "max": 9
+            },
+            "mean_matched_iou": {
+              "mean": 0.8524280159955733,
+              "min": 0.8372018154443506,
+              "max": 0.8705405314117544
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 5.25,
+              "min": 1,
+              "max": 9
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 4.5,
+              "min": 1,
+              "max": 8
+            },
+            "fp": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 1
+            },
+            "fn": {
+              "mean": 3.5,
+              "min": 0,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 5.25,
+              "min": 1,
+              "max": 9
+            },
+            "mean_matched_iou": {
+              "mean": 0.8524280159955733,
+              "min": 0.8372018154443506,
+              "max": 0.8705405314117544
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 5.25,
+              "min": 1,
+              "max": 9
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        },
+        "crop_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 4.5,
+              "min": 1,
+              "max": 8
+            },
+            "fp": {
+              "mean": 1.25,
+              "min": 0,
+              "max": 2
+            },
+            "fn": {
+              "mean": 3.5,
+              "min": 0,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 5.75,
+              "min": 1,
+              "max": 10
+            },
+            "mean_matched_iou": {
+              "mean": 0.8295843455739049,
+              "min": 0.7866254350778346,
+              "max": 0.8725997460079723
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 5.75,
+              "min": 1,
+              "max": 10
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 4.5,
+              "min": 1,
+              "max": 8
+            },
+            "fp": {
+              "mean": 1.25,
+              "min": 0,
+              "max": 2
+            },
+            "fn": {
+              "mean": 3.5,
+              "min": 0,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 5.75,
+              "min": 1,
+              "max": 10
+            },
+            "mean_matched_iou": {
+              "mean": 0.8295843455739049,
+              "min": 0.7866254350778346,
+              "max": 0.8725997460079723
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 5.75,
+              "min": 1,
+              "max": 10
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        },
+        "adopted": {
+          "0.5": {
+            "tp": {
+              "mean": 4.5,
+              "min": 1,
+              "max": 8
+            },
+            "fp": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "fn": {
+              "mean": 3.5,
+              "min": 0,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 4.5,
+              "min": 1,
+              "max": 8
+            },
+            "mean_matched_iou": {
+              "mean": 0.8295843455739049,
+              "min": 0.7866254350778346,
+              "max": 0.8725997460079723
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 4.5,
+              "min": 1,
+              "max": 8
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 4.5,
+              "min": 1,
+              "max": 8
+            },
+            "fp": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "fn": {
+              "mean": 3.5,
+              "min": 0,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 4.5,
+              "min": 1,
+              "max": 8
+            },
+            "mean_matched_iou": {
+              "mean": 0.8295843455739049,
+              "min": 0.7866254350778346,
+              "max": 0.8725997460079723
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 4.5,
+              "min": 1,
+              "max": 8
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        }
+      },
+      "seconds": {
+        "mean": 5.5778395000000005,
+        "min": 2.324366,
+        "max": 8.787798
+      },
+      "http": {
+        "mean": 11.25,
+        "min": 3,
+        "max": 19
+      },
+      "estimated_cost_usd": {
+        "mean": 0.0010584525,
+        "min": 0.00034322400000000005,
+        "max": 0.001766016
+      },
+      "per_repeat_tp50": [
+        8,
+        1,
+        8,
+        1
+      ],
+      "per_repeat_tp75": [
+        8,
+        1,
+        8,
+        1
+      ],
+      "invalid_raw_boxes": {
+        "search_raw": 1,
+        "crop_raw": 0
+      },
+      "answer_error_frames": 1
+    },
+    {
+      "scene": "scene-B",
+      "condition": "mtg_plain",
+      "repeats": 4,
+      "layers": {
+        "search_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 3.5,
+              "min": 2,
+              "max": 7
+            },
+            "fp": {
+              "mean": 1.25,
+              "min": 1,
+              "max": 2
+            },
+            "fn": {
+              "mean": 4.5,
+              "min": 1,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 4.75,
+              "min": 3,
+              "max": 9
+            },
+            "mean_matched_iou": {
+              "mean": 0.8339810937279972,
+              "min": 0.8088079895198655,
+              "max": 0.8567080842115057
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 4.75,
+              "min": 3,
+              "max": 9
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 3.25,
+              "min": 2,
+              "max": 7
+            },
+            "fp": {
+              "mean": 1.5,
+              "min": 1,
+              "max": 2
+            },
+            "fn": {
+              "mean": 4.75,
+              "min": 1,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 4.75,
+              "min": 3,
+              "max": 9
+            },
+            "mean_matched_iou": {
+              "mean": 0.8434217577675166,
+              "min": 0.8313532408256361,
+              "max": 0.8567080842115057
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 4.75,
+              "min": 3,
+              "max": 9
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        },
+        "crop_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 3.5,
+              "min": 2,
+              "max": 7
+            },
+            "fp": {
+              "mean": 3.5,
+              "min": 2,
+              "max": 7
+            },
+            "fn": {
+              "mean": 4.5,
+              "min": 1,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 7,
+              "min": 4,
+              "max": 14
+            },
+            "mean_matched_iou": {
+              "mean": 0.8491333653452997,
+              "min": 0.8243392175238463,
+              "max": 0.8809402663853274
+            },
+            "duplicate_truth_predictions": {
+              "mean": 1.75,
+              "min": 1,
+              "max": 3
+            },
+            "geometric_unique_groups": {
+              "mean": 6.25,
+              "min": 4,
+              "max": 12
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 2
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 3.25,
+              "min": 2,
+              "max": 6
+            },
+            "fp": {
+              "mean": 3.75,
+              "min": 2,
+              "max": 8
+            },
+            "fn": {
+              "mean": 4.75,
+              "min": 2,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 7,
+              "min": 4,
+              "max": 14
+            },
+            "mean_matched_iou": {
+              "mean": 0.8606353844582181,
+              "min": 0.8243392175238463,
+              "max": 0.8809402663853274
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.5,
+              "min": 0,
+              "max": 1
+            },
+            "geometric_unique_groups": {
+              "mean": 6.25,
+              "min": 4,
+              "max": 12
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 2
+            }
+          }
+        },
+        "adopted": {
+          "0.5": {
+            "tp": {
+              "mean": 3.5,
+              "min": 2,
+              "max": 7
+            },
+            "fp": {
+              "mean": 0.25,
+              "min": 0,
+              "max": 1
+            },
+            "fn": {
+              "mean": 4.5,
+              "min": 1,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 3.75,
+              "min": 2,
+              "max": 8
+            },
+            "mean_matched_iou": {
+              "mean": 0.8483058784511516,
+              "min": 0.8243392175238463,
+              "max": 0.8809402663853274
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.25,
+              "min": 0,
+              "max": 1
+            },
+            "geometric_unique_groups": {
+              "mean": 3.75,
+              "min": 2,
+              "max": 8
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 3.25,
+              "min": 2,
+              "max": 6
+            },
+            "fp": {
+              "mean": 0.5,
+              "min": 0,
+              "max": 2
+            },
+            "fn": {
+              "mean": 4.75,
+              "min": 2,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 3.75,
+              "min": 2,
+              "max": 8
+            },
+            "mean_matched_iou": {
+              "mean": 0.8587872731829079,
+              "min": 0.8243392175238463,
+              "max": 0.8809402663853274
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 3.75,
+              "min": 2,
+              "max": 8
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        }
+      },
+      "seconds": {
+        "mean": 5.7969972499999995,
+        "min": 3.839667,
+        "max": 10.292121999999999
+      },
+      "http": {
+        "mean": 11.75,
+        "min": 7,
+        "max": 23
+      },
+      "estimated_cost_usd": {
+        "mean": 0.000965958,
+        "min": 0.000585186,
+        "max": 0.00188937
+      },
+      "per_repeat_tp50": [
+        2,
+        7,
+        3,
+        2
+      ],
+      "per_repeat_tp75": [
+        2,
+        6,
+        3,
+        2
+      ],
+      "invalid_raw_boxes": {
+        "search_raw": 0,
+        "crop_raw": 0
+      },
+      "answer_error_frames": 0
+    },
+    {
+      "scene": "scene-B",
+      "condition": "mtg_explicit",
+      "repeats": 4,
+      "layers": {
+        "search_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 2.25,
+              "min": 2,
+              "max": 3
+            },
+            "fp": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 1
+            },
+            "fn": {
+              "mean": 5.75,
+              "min": 5,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 3,
+              "min": 2,
+              "max": 4
+            },
+            "mean_matched_iou": {
+              "mean": 0.8533652526891475,
+              "min": 0.8392218109231192,
+              "max": 0.8662000948352939
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 3,
+              "min": 2,
+              "max": 4
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 2.25,
+              "min": 2,
+              "max": 3
+            },
+            "fp": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 1
+            },
+            "fn": {
+              "mean": 5.75,
+              "min": 5,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 3,
+              "min": 2,
+              "max": 4
+            },
+            "mean_matched_iou": {
+              "mean": 0.8533652526891475,
+              "min": 0.8392218109231192,
+              "max": 0.8662000948352939
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 3,
+              "min": 2,
+              "max": 4
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        },
+        "crop_raw": {
+          "0.5": {
+            "tp": {
+              "mean": 2.25,
+              "min": 2,
+              "max": 3
+            },
+            "fp": {
+              "mean": 0.75,
+              "min": 0,
+              "max": 1
+            },
+            "fn": {
+              "mean": 5.75,
+              "min": 5,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 3,
+              "min": 2,
+              "max": 4
+            },
+            "mean_matched_iou": {
+              "mean": 0.8378939359865721,
+              "min": 0.7977156854106755,
+              "max": 0.8809936501050984
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.25,
+              "min": 0,
+              "max": 1
+            },
+            "geometric_unique_groups": {
+              "mean": 3,
+              "min": 2,
+              "max": 4
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 2,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 1,
+              "min": 1,
+              "max": 1
+            },
+            "fn": {
+              "mean": 6,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 3,
+              "min": 2,
+              "max": 4
+            },
+            "mean_matched_iou": {
+              "mean": 0.8560082111089022,
+              "min": 0.8180654733076691,
+              "max": 0.8809936501050984
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0.25,
+              "min": 0,
+              "max": 1
+            },
+            "geometric_unique_groups": {
+              "mean": 3,
+              "min": 2,
+              "max": 4
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        },
+        "adopted": {
+          "0.5": {
+            "tp": {
+              "mean": 2.25,
+              "min": 2,
+              "max": 3
+            },
+            "fp": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "fn": {
+              "mean": 5.75,
+              "min": 5,
+              "max": 6
+            },
+            "proposals": {
+              "mean": 2.25,
+              "min": 2,
+              "max": 3
+            },
+            "mean_matched_iou": {
+              "mean": 0.8378939359865721,
+              "min": 0.7977156854106755,
+              "max": 0.8809936501050984
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 2.25,
+              "min": 2,
+              "max": 3
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          },
+          "0.75": {
+            "tp": {
+              "mean": 2,
+              "min": 1,
+              "max": 3
+            },
+            "fp": {
+              "mean": 0.25,
+              "min": 0,
+              "max": 1
+            },
+            "fn": {
+              "mean": 6,
+              "min": 5,
+              "max": 7
+            },
+            "proposals": {
+              "mean": 2.25,
+              "min": 2,
+              "max": 3
+            },
+            "mean_matched_iou": {
+              "mean": 0.8560082111089022,
+              "min": 0.8180654733076691,
+              "max": 0.8809936501050984
+            },
+            "duplicate_truth_predictions": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            },
+            "geometric_unique_groups": {
+              "mean": 2.25,
+              "min": 2,
+              "max": 3
+            },
+            "geometric_duplicate_pairs": {
+              "mean": 0,
+              "min": 0,
+              "max": 0
+            }
+          }
+        }
+      },
+      "seconds": {
+        "mean": 4.0057582499999995,
+        "min": 3.3191439999999997,
+        "max": 4.918499
+      },
+      "http": {
+        "mean": 6.25,
+        "min": 5,
+        "max": 8
+      },
+      "estimated_cost_usd": {
+        "mean": 0.0006299685,
+        "min": 0.0005394060000000001,
+        "max": 0.0007932120000000001
+      },
+      "per_repeat_tp50": [
+        2,
+        2,
+        3,
+        2
+      ],
+      "per_repeat_tp75": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "invalid_raw_boxes": {
+        "search_raw": 1,
+        "crop_raw": 0
+      },
+      "answer_error_frames": 1
+    }
+  ],
+  "paired_effects": [
+    {
+      "scene": "scene-A",
+      "factor": "generic-minus-mtg",
+      "paired_tp50_difference": {
+        "mean": 0.375,
+        "min": -1,
+        "max": 3
+      },
+      "wins": 2,
+      "ties": 5,
+      "losses": 1,
+      "differences": [
+        0,
+        0,
+        3,
+        0,
+        0,
+        1,
+        -1,
+        0
+      ]
+    },
+    {
+      "scene": "scene-A",
+      "factor": "explicit-minus-plain",
+      "paired_tp50_difference": {
+        "mean": -0.125,
+        "min": -2,
+        "max": 1
+      },
+      "wins": 2,
+      "ties": 4,
+      "losses": 2,
+      "differences": [
+        0,
+        0,
+        1,
+        -2,
+        0,
+        1,
+        -1,
+        0
+      ]
+    },
+    {
+      "scene": "scene-B",
+      "factor": "generic-minus-mtg",
+      "paired_tp50_difference": {
+        "mean": 0.75,
+        "min": -4,
+        "max": 6
+      },
+      "wins": 4,
+      "ties": 0,
+      "losses": 4,
+      "differences": [
+        1,
+        6,
+        -4,
+        -1,
+        -1,
+        5,
+        1,
+        -1
+      ]
+    },
+    {
+      "scene": "scene-B",
+      "factor": "explicit-minus-plain",
+      "paired_tp50_difference": {
+        "mean": 0.25,
+        "min": -5,
+        "max": 6
+      },
+      "wins": 2,
+      "ties": 3,
+      "losses": 3,
+      "differences": [
+        0,
+        5,
+        -5,
+        -2,
+        0,
+        6,
+        0,
+        -2
+      ]
+    }
+  ],
+  "phase_http": 225,
+  "phase_input_tokens": 493732,
+  "phase_output_tokens": 10036,
+  "phase_estimated_cost_usd": 0.020736744,
+  "pending": 0,
+  "unknown_usage": 0,
+  "known_cloud_http": 508,
+  "known_cloud_estimated_usd": 0.04928553,
+  "mac_included": false
+}
