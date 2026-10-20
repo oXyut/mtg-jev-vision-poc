@@ -71,5 +71,7 @@ def prompt_profile(method, capacity=16, frame_max_requests=64):
                'max_cards': 1 if method == 'single' else 4 if method == 'ordinal4' else capacity,
                'frame_max_api_calls': 1 if method != 'multi' else frame_max_requests,
                'documents': docs, 'enumeration_guaranteed': False}
+    if method == 'multi':
+        profile['search_presence_policy'] = 'p<=.20 stops; .20<p<.80 verifies a proposal in original crops; final local adoption thresholds unchanged'
     profile['sha256'] = hashlib.sha256(json.dumps(profile, sort_keys=True).encode()).hexdigest()
     return profile

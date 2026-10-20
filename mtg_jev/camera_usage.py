@@ -9,7 +9,8 @@ from datetime import datetime, timezone
 
 from .provider import PRICE_PER_MILLION_INPUT
 
-POC_SPENT_BEFORE_CAMERA = .025210836
+LEDGER_MINIMUM_PRIOR_USD = .025210836  # Original schema-1 books remain readable.
+POC_SPENT_BEFORE_CAMERA = .028548786  # Known Cloud only; preserves local usage separately.
 POC_LIMIT_USD = 5.0
 
 
@@ -46,7 +47,7 @@ class UsageLedger:
         d = self.data
         if d.get('schema_version') != 1:
             raise ValueError('Unknown usage schema')
-        if not isinstance(d.get('prior_spend_usd'), (int, float)) or not math.isfinite(d['prior_spend_usd']) or not POC_SPENT_BEFORE_CAMERA <= d['prior_spend_usd'] < POC_LIMIT_USD:
+        if not isinstance(d.get('prior_spend_usd'), (int, float)) or not math.isfinite(d['prior_spend_usd']) or not LEDGER_MINIMUM_PRIOR_USD <= d['prior_spend_usd'] < POC_LIMIT_USD:
             raise ValueError('Invalid prior cost')
         for k in ('input_tokens', 'output_tokens', 'requests_attempted'):
             if type(d.get(k)) is not int or d[k] < 0:

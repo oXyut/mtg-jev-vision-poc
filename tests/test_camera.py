@@ -10,7 +10,7 @@ from contextlib import redirect_stderr
 from unittest.mock import patch
 
 from mtg_jev.camera_server import CameraConfig, CameraRequestError, CameraState, make_camera_server
-from mtg_jev.camera_usage import UsageLedger, POC_SPENT_BEFORE_CAMERA
+from mtg_jev.camera_usage import UsageLedger, POC_SPENT_BEFORE_CAMERA, LEDGER_MINIMUM_PRIOR_USD
 from mtg_jev.fixtures import fixture
 from mtg_jev.images import png_bytes
 from mtg_jev.provider import MODEL, ProviderError
@@ -111,6 +111,20 @@ class CameraStateTests(unittest.TestCase):
         value = json.loads(Path(self.path).read_text()); value['input_tokens'] = 0
         Path(self.path).write_text(json.dumps(value))
         with self.assertRaises(ValueError): UsageLedger(self.path)
+
+    def test_old_cloud_baseline_upgrades_without_losing_local_usage(self):
+        ledger = UsageLedger(self.path)
+        ledger.begin(2); ledger.finish({'input_tokens': 1000, 'output_tokens': 36}); ledger.close()
+        old = json.loads(Path(self.path).read_text())
+        old['prior_spend_usd'] = LEDGER_MINIMUM_PRIOR_USD
+        Path(self.path).write_text(json.dumps(old))
+        upgraded = UsageLedger(self.path)
+        self.assertEqual(upgraded.data['prior_spend_usd'], POC_SPENT_BEFORE_CAMERA)
+        self.assertEqual(upgraded.data['history'], old['history'])
+        self.assertEqual(upgraded.data['requests_attempted'], 1)
+        self.assertAlmostEqual(upgraded.spent, POC_SPENT_BEFORE_CAMERA+.000042)
+        upgraded.close()
+        with self.assertRaises(ValueError): UsageLedger(self.path, LEDGER_MINIMUM_PRIOR_USD)
 
     def test_backpressure_does_not_queue_a_second_provider_request(self):
         entered, finish = threading.Event(), threading.Event()

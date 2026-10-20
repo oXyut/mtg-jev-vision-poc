@@ -36,7 +36,7 @@ async function showPrompts() {
     'confidenceはアプリ側の表示基準です。正解率を保証する値ではありません。';
   $('methodLimits').textContent = multi ? `最大${config.max_cards}枚 / 最大${config.frame_max_api_calls} API・frame（途中停止あり）` :
     method === 'single' ? '最大1枚 / 1 API・frame' : `最大${config.max_cards}候補 / 1 API・frame（完全列挙は未保証）`;
-  $('methodHint').textContent = multi ? '複数探索は時間がかかります。結果まで10秒を超えると自動一時停止します。1APIの高速比較へ切り替えられますが、順位一括の精度保証はありません。' :
+  $('methodHint').textContent = multi ? 'LIVEでは静止フレームを1回探索して一時停止します。実写真では2.9〜4.6秒、8枚検出は未達です。過去フレームで確認後、手動で再実行できます。' :
     method === 'single' ? '1枚だけの提案です。複数カードの検出には使いません。' :
     `1APIで順位候補を比較します。速さ・一意な列挙は保証されません。次HTTPの保守的予約はUS$${config.ordinal_reservation_usd.toFixed(3)}（請求額ではありません）。重複/低確信で採用0件の場合もあります。`;
   try {
@@ -230,13 +230,15 @@ function showResult(value) {
     data.detections.length ? 'モデルの予測枠を受信しました。撮影時点の位置です。' :
     `採用枠なし。保留候補 ${data.unresolved_candidates}件。低確信と未検出は区別して確認してください。`);
   const slow = returnedAt-frame.capturedAt > config.slow_result_pause_ms;
-  if (data.mode === 'live' && (data.auto_pause || data.budget.requests_remaining === 0 || slow)) {
+  const oneFrame = data.method === 'multi';
+  if (data.mode === 'live' && (oneFrame || data.auto_pause || data.budget.requests_remaining === 0 || slow)) {
     loop.stop(); cancelRun(); buttons();
     const reasons = {frame_request_limit: 'このフレームのAPI回数枠', request_limit_reached: 'この起動のAPI回数枠',
       estimated_budget_reservation: '次の呼出しの見積費用枠', scan_cancelled: '停止要求',
       estimated_budget_exceeded: '見積費用上限', provider_stopped_no_retry: '通信またはusageの未確定'};
     const advice = data.method === 'multi' ? '1APIの高速比較へ切り替えられます（精度保証なし）。' : '状態を確認してから手動で再開してください。';
-    status(slow ? `検出${data.detections.length}件 / ${data.api_calls} API・${((returnedAt-frame.capturedAt)/1000).toFixed(1)}秒。遅延のため自動一時停止し、過去フレームへ表示しました。${advice}` :
+    status(oneFrame && !data.auto_pause ? `検出${data.detections.length}件 / ${data.api_calls} API・${((returnedAt-frame.capturedAt)/1000).toFixed(1)}秒。1回の探索を終了し一時停止しました。過去フレームを確認し、再実行は手動で開始してください。` :
+      slow ? `検出${data.detections.length}件 / ${data.api_calls} API・${((returnedAt-frame.capturedAt)/1000).toFixed(1)}秒。遅延のため自動一時停止し、過去フレームへ表示しました。${advice}` :
       `推論を一時停止しました（${reasons[data.stop_reason] || '探索の継続条件'}）。撮影済みフレームの結果を表示しています。`);
   }
 }

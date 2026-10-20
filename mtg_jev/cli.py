@@ -54,7 +54,7 @@ def main(argv=None):
     camera.add_argument("--frame-max-requests", type=int, default=64)
     camera.add_argument("--budget-usd", type=float, default=0)
     camera.add_argument("--usage-ledger", default="camera-usage.json")
-    camera.add_argument("--prior-spend-usd", type=float, default=.025210836)
+    camera.add_argument("--prior-spend-usd", type=float, default=None)
     camera.add_argument("--prompt-key", action="store_true", help="Read your local key without terminal echo")
     ocr_demo = sub.add_parser("identification-demo", help="Generate fictional text for local OCR")
     ocr_demo.add_argument("--output", default="demo/identification")
@@ -119,9 +119,10 @@ def main(argv=None):
             serve(args.port)
         elif args.command == "camera":
             from .camera_server import CameraConfig, serve_camera
+            from .camera_usage import POC_SPENT_BEFORE_CAMERA
             config = CameraConfig(mode=args.mode, approve_live=args.approve_live,
                                   max_requests=args.max_requests, budget_usd=args.budget_usd,
-                                  usage_ledger=args.usage_ledger, prior_spend_usd=args.prior_spend_usd,
+                                  usage_ledger=args.usage_ledger, prior_spend_usd=POC_SPENT_BEFORE_CAMERA if args.prior_spend_usd is None else args.prior_spend_usd,
                                   max_cards=args.max_cards, frame_max_requests=args.frame_max_requests)
             config.validate()  # Approval before key prompt or camera/server creation.
             if args.prompt_key:

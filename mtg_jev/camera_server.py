@@ -219,7 +219,7 @@ class CameraState:
                         scan = detect_masked(prepared, frame_client,
                             MaskSettings(max_rounds=capacity, box_confidence=min_confidence),
                             recenter=True, search_caption='short', search_document=search_document,
-                            crop_document=crop_document)
+                            crop_document=crop_document, verify_uncertain_proposals=True)
                         detections, candidates = scan['detections'], scan['candidates']
                         accepted = [c for c in candidates if c['status'] == 'accepted']
                         for d, c in zip(detections, accepted):

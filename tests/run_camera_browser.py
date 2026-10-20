@@ -107,6 +107,32 @@ async def run(executable, screenshots):
             assert await page.locator('#snapshot').evaluate('(c)=>c.width') == 0
             assert await page.locator('#startInference').is_disabled()
             assert await page.locator('#boxCount').inner_text() == '—'
+            # Stub only the response label to exercise the LIVE one-frame UI;
+            # the server stays MOCK and never constructs an API client.
+            await page.evaluate('''()=>{
+                const previous=window.fetch.bind(window);
+                window.fetch=async(...args)=>{const response=await previous(...args);
+                    if(!String(args[0]).startsWith('/api/camera/frame'))return response;
+                    const data=await response.json();data.mode='live';
+                    return new Response(JSON.stringify(data),{status:response.status,
+                        headers:{'Content-Type':'application/json'}});};
+            }''')
+            await page.locator('#startCamera').click()
+            await page.wait_for_function('()=>!document.getElementById("startInference").disabled')
+            before_one_frame = server.camera.frames
+            await asyncio.sleep(2.1)  # Preserve the server's minimum send interval.
+            await page.locator('#startInference').click()
+            try:
+                await page.wait_for_function('()=>document.getElementById("status").textContent.includes("1回の探索を終了")', timeout=5000)
+            except Exception:
+                print({'stubbed_status': await page.locator('#status').inner_text(),
+                       'stubbed_error': await page.locator('#error').inner_text(), 'page_errors': errors})
+                raise
+            assert not await page.locator('#startInference').is_disabled()
+            await asyncio.sleep(2.2)
+            assert server.camera.frames == before_one_frame+1
+            assert await page.locator('#snapshot').evaluate('(c)=>c.width') > 0
+            await page.locator('#stopAll').click()
             await page.evaluate('''()=>{navigator.mediaDevices.getUserMedia=async()=>{throw new DOMException('fake denial','NotAllowedError');};}''')
             await page.locator('#startCamera').click()
             await page.wait_for_function('()=>document.getElementById("error").textContent.includes("許可されていません")')
@@ -125,7 +151,7 @@ async def run(executable, screenshots):
         return {'browser': 'Chromium fake camera', 'real_camera_tested': False, 'jev_api_calls': 0,
                 'mock_frames': server.camera.frames, 'checks': ['no_autostart', 'camera_selection',
                 'smooth_video_clock', 'explicit_inference', 'confidence_labels', 'stale_overlay_expiry',
-                'pause_timer', 'stop_tracks', 'late_response_ignored', 'permission_denied', 'late_permission_cleanup'],
+                'pause_timer', 'stop_tracks', 'late_response_ignored', 'stubbed_live_single_frame_pause', 'permission_denied', 'late_permission_cleanup'],
                 'screenshots': str(screenshots) if screenshots else None}
     finally:
         server.shutdown(); server.server_close(); thread.join(timeout=3)

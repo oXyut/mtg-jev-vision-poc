@@ -61,6 +61,36 @@ class MaskedSearchTests(unittest.TestCase):
         for kwargs in ({'max_rounds':17},{'presence_no':.9},{'mask_margin_pixels':-1}):
             with self.assertRaises(ValueError):MaskSettings(**kwargs)
 
+    def test_uncertain_search_is_only_a_proposal_and_local_gates_remain_required(self):
+        source=prepare(png_bytes(Image.new('RGB',(800,600),'white')))
+        target=Box(.1,.1,.3,.4);tile,region=proposal_crop(source.original,target)
+        l,t,r,b=target.pixels(*source.original.size)
+        local=Box((l-region[0])/tile.original.width,(t-region[1])/tile.original.height,
+                  (r-region[0])/tile.original.width,(b-region[1])/tile.original.height)
+        class Replay:
+            mode='mock';calls=0
+            def __init__(self,search_presence,local_presence=.99):
+                self.search_presence,self.local_presence=search_presence,local_presence
+            def _ask(self,*args):
+                self.calls+=1
+                a={'present':{'type':'noul','noul':self.search_presence if self.calls==1 else self.local_presence},
+                   'card':{'type':'box','box':(target if self.calls==1 else tile.to_prepared(local)).json(),'confidence':.9}}
+                if self.calls>1:a['single']={'type':'noul','noul':.99}
+                return {'model':'mock-script','usage':{'input_tokens':0,'output_tokens':0},'answers':a}
+        legacy=detect_masked(source,Replay(.71),MaskSettings(max_rounds=1))
+        self.assertEqual(legacy['api_calls'],1)
+        self.assertEqual(legacy['detections'],[])
+        accepted=detect_masked(source,Replay(.71),MaskSettings(max_rounds=1),verify_uncertain_proposals=True)
+        self.assertEqual(accepted['api_calls'],2)
+        self.assertEqual(len(accepted['detections']),1)
+        self.assertIn('search_warning',accepted['candidates'][0])
+        rejected=detect_masked(source,Replay(.71,.79),MaskSettings(max_rounds=1),verify_uncertain_proposals=True)
+        self.assertEqual(rejected['detections'],[])
+        self.assertIn('local_presence_uncertain',rejected['candidates'][0]['reasons'])
+        absent=detect_masked(source,Replay(.2),verify_uncertain_proposals=True)
+        self.assertEqual(absent['api_calls'],1)
+        self.assertEqual(absent['detections'],[])
+
     def test_correspondence_assets_have_explicit_shared_target_without_answer_dependencies(self):
         crop=prepare(png_bytes(Image.new('RGB',(400,300),'gray')))
         doc=correspondence_document(crop,'original-id')
