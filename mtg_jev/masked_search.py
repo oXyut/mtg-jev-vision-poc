@@ -106,7 +106,8 @@ def adoption_reasons(presence,single,confidence,agreement,new_fraction,boundarie
 
 
 def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progress=None,
-                  search_caption=None,correspondence=False):
+                  search_caption=None,correspondence=False,search_document=None,crop_document=None,
+                  verify_uncertain_proposals=False):
     """Experimental search, always incomplete even when the model reports none.
 
     Legacy v2 defaults to the baseline caption and up to three original crops.
@@ -144,7 +145,7 @@ def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progres
         for ordinal in range(settings.max_rounds):
             search,mask=render_search(prepared.original,adopted,settings.mask_margin_pixels)
             tile=prepare(png_bytes(search))
-            a=ask(tile,masked_ranked_document if caption=='baseline' else masked_document,2)
+            a=ask(tile,search_document or (masked_ranked_document if caption=='baseline' else masked_document),2)
             presence=noul(a,'present')
             c={'round':ordinal,'search_presence':presence,'status':'unresolved','reasons':[],'local_attempts':[]}
             candidates.append(c)
@@ -152,7 +153,11 @@ def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progres
                 c.update(status='rejected',reasons=['model_reports_no_remaining_card'])
                 stop='model_reports_none_not_proof_of_exhaustiveness';break
             if presence<settings.presence_yes:
-                c['reasons'].append('remaining_presence_uncertain');stop='remaining_presence_uncertain';break
+                if not verify_uncertain_proposals:
+                    c['reasons'].append('remaining_presence_uncertain');stop='remaining_presence_uncertain';break
+                # This is a proposal, never an adopted card. Local evidence must
+                # still pass every unchanged adoption condition below.
+                c['search_warning']='remaining_presence_uncertain_verify_locally'
             raw,conf=read_box(a);proposal=tile.to_original(raw)
             c.update(proposal_box=proposal.json(),search_confidence=conf)
             anchor=proposal
@@ -163,7 +168,7 @@ def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progres
                         search_tile=prepare(png_bytes(search.crop(region)))
                         if search_tile.metadata()!=tile.metadata():raise ValueError('Crop transforms differ')
                         a=ask(tile,lambda unused,ref:correspondence_document(search_tile,ref),4)
-                    else:a=ask(tile,local_document,3)
+                    else:a=ask(tile,crop_document or local_document,3)
                     local_presence,single=noul(a,'present'),noul(a,'single')
                     raw,confidence=read_box(a);local=tile.to_original(raw)
                     refined=to_global(local,region,prepared.original.size)
@@ -196,6 +201,7 @@ def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progres
                 'masked_search_v2' if caption=='baseline' and recenter else
                 'masked_search_v1' if caption=='short' and not recenter else
                 'masked_search_caption_only_v1' if caption=='baseline' else 'masked_search_recenter_only_v1')
+    if verify_uncertain_proposals:experiment += '_verify_uncertain_v1'
     return {'schema_version':1,'mode':client.mode,'experiment':experiment,
         'evidence':'live_exploratory_development_fit' if client.mode=='live' else 'mock_replay',
         'coordinate_system':COORDINATES,'image':{'width':prepared.original.width,'height':prepared.original.height},
@@ -203,5 +209,6 @@ def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progres
             for i,c in enumerate(x for x in candidates if x['status']=='accepted')],
         'status':status,'stop_reason':stop,'api_calls':client.calls-initial,'usage':usage,
         'search_caption':caption,'recenter':recenter,'correspondence':correspondence,
+        'verify_uncertain_proposals':verify_uncertain_proposals,
         'estimated_cost_usd':usage['input_tokens']*PRICE_PER_MILLION_INPUT/1e6,
         'pipeline_elapsed_ms':round((time.perf_counter()-started)*1000,3)}

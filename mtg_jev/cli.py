@@ -45,6 +45,17 @@ def main(argv=None):
     evaluation.add_argument("--output")
     serve = sub.add_parser("serve", help="Loopback-only, mock-only Web UI")
     serve.add_argument("--port", type=int, default=8765)
+    camera = sub.add_parser("camera", help="Local browser camera; explicit start, mock by default")
+    camera.add_argument("--port", type=int, default=8766)
+    camera.add_argument("--mode", choices=("mock", "live"), default="mock")
+    camera.add_argument("--approve-live", action="store_true")
+    camera.add_argument("--max-requests", type=int, default=80)
+    camera.add_argument("--max-cards", type=int, default=16)
+    camera.add_argument("--frame-max-requests", type=int, default=64)
+    camera.add_argument("--budget-usd", type=float, default=0)
+    camera.add_argument("--usage-ledger", default="camera-usage.json")
+    camera.add_argument("--prior-spend-usd", type=float, default=None)
+    camera.add_argument("--prompt-key", action="store_true", help="Read your local key without terminal echo")
     ocr_demo = sub.add_parser("identification-demo", help="Generate fictional text for local OCR")
     ocr_demo.add_argument("--output", default="demo/identification")
     identify = sub.add_parser("identify", help="Offline crop → OCR → catalog candidates/unknown")
@@ -106,6 +117,21 @@ def main(argv=None):
         elif args.command == "serve":
             from .server import serve
             serve(args.port)
+        elif args.command == "camera":
+            from .camera_server import CameraConfig, serve_camera
+            from .camera_usage import POC_SPENT_BEFORE_CAMERA
+            config = CameraConfig(mode=args.mode, approve_live=args.approve_live,
+                                  max_requests=args.max_requests, budget_usd=args.budget_usd,
+                                  usage_ledger=args.usage_ledger, prior_spend_usd=POC_SPENT_BEFORE_CAMERA if args.prior_spend_usd is None else args.prior_spend_usd,
+                                  max_cards=args.max_cards, frame_max_requests=args.frame_max_requests)
+            config.validate()  # Approval before key prompt or camera/server creation.
+            if args.prompt_key:
+                if args.mode != 'live' or not sys.stdin.isatty():
+                    raise ValueError('Key prompt requires a live local terminal')
+                import getpass
+                import os
+                os.environ['TYPESAFE_API_KEY'] = getpass.getpass('Your local TypeSafe API key (hidden): ')
+            serve_camera(args.port, config)
         elif args.command == "identification-demo":
             from .identification_demo import generate_identification_demo
             generate_identification_demo(args.output)

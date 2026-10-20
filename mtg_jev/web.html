@@ -9,7 +9,7 @@
 </head>
 <body><main>
 <header><div><div class="eyebrow">VISION EXPERIMENT / 01</div><h1>MTG × Jev <span class="muted">位置検出PoC</span></h1></div><span class="badge">MOCK · API呼出し 0</span></header>
-<div class="notice"><strong>この画面は台本によるモックです。</strong> 表示boxはシナリオで固定され、画像を認識しません。合成矩形の一致は、実際のMTGカード検出の成功を意味しません。実APIとカード名同定は未評価です。</div>
+<div class="notice"><strong>この画面は台本によるモックです。</strong> 表示boxはシナリオで固定され、画像を認識しません。合成矩形の一致は、実際のMTGカード検出の成功を意味しません。この画面は実APIを呼びません。カード名同定は未評価です。</div>
 <div class="layout"><section class="panel" aria-label="画像とbounding box">
 <div class="toolbar"><label>合成シナリオ<select id="scenario"><option value="multiple">複数 / 3枚</option><option value="none">0枚</option><option value="single">1枚</option><option value="rotated">回転 / 2枚</option><option value="overlap">重なり / 2枚</option><option value="edge">画面端 / 2枚</option></select></label><button id="load">合成画像を表示</button><label>PNG / JPEG<input id="upload" type="file" accept="image/png,image/jpeg"></label><button id="run" class="primary" disabled>モックboxを表示</button></div>
 <div class="stage"><canvas id="canvas" width="800" height="600" role="img" tabindex="0" aria-label="画像プレビュー。正解boxはドラッグ、または右側の数値入力で追加できます。"></canvas></div>
@@ -20,7 +20,7 @@
 <details><summary>保存結果JSON</summary><pre id="json">未実行</pre></details>
 </section><aside class="panel"><h2>正解アノテーション</h2><p class="muted">画像上をドラッグして囲むか、0–1の座標を入力してください。回転カードも軸に平行な矩形で囲みます。重なりは見えている部分の範囲を対象にします。</p>
 <form id="boxform"><div class="fieldgrid"><label>left<input id="left" type="number" min="0" max="1" step="any" value="0.1" required></label><label>top<input id="top" type="number" min="0" max="1" step="any" value="0.1" required></label><label>right<input id="right" type="number" min="0" max="1" step="any" value="0.3" required></label><label>bottom<input id="bottom" type="number" min="0" max="1" step="any" value="0.5" required></label></div><button type="submit" style="width:100%;margin-top:10px">正解boxを追加</button></form>
-<p id="count" class="muted">手動正解: 0個</p><hr><h2>位置の評価 <span class="muted">IoU ≥ 0.50</span></h2><p class="muted">一対一の最大対応数で計算。分母0は「—」。同定精度とは別の指標です。</p><div class="stats"><div class="stat">Precision<strong id="precision">—</strong></div><div class="stat">Recall<strong id="recall">—</strong></div><div class="stat">F1<strong id="f1">—</strong></div></div><pre id="metrics">未評価</pre><hr><h2>このMVPの範囲</h2><p class="muted">画像はローカルプロセスのメモリ内で処理します。サーバーはアップロードを保存せず、APIキーも受け取りません。画像を含む結果は保存ボタンを押した時だけダウンロードします。</p><p class="muted">カード名: unknown<br>実カード精度: 未実測<br>動画・リアルタイム: 未実装</p></aside></div>
+<p id="count" class="muted">手動正解: 0個</p><hr><h2>位置の評価 <span class="muted">IoU ≥ 0.50</span></h2><p class="muted">一対一の最大対応数で計算。分母0は「—」。同定精度とは別の指標です。</p><div class="stats"><div class="stat">Precision<strong id="precision">—</strong></div><div class="stat">Recall<strong id="recall">—</strong></div><div class="stat">F1<strong id="f1">—</strong></div></div><pre id="metrics">未評価</pre><hr><h2>このMVPの範囲</h2><p class="muted">画像はローカルプロセスのメモリ内で処理します。サーバーはアップロードを保存せず、APIキーも受け取りません。画像を含む結果は保存ボタンを押した時だけダウンロードします。</p><p class="muted">カード名: unknown<br>実カード精度: 盤面8枚未達（静止画実測）<br>カメラ試用: 別コマンド camera</p></aside></div>
 <footer>自作合成矩形のみ同梱。任意画像を読み込んでも、モックboxの位置は選択シナリオのままです。<a href="https://docs.typesafe.ai/primitives/box" target="_blank" rel="noreferrer">Jev Box公式仕様</a></footer>
 </main><script>
 'use strict';
