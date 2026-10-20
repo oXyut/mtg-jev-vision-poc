@@ -14,6 +14,10 @@ from mtg_jev.camera_usage import UsageLedger, POC_SPENT_BEFORE_CAMERA
 from mtg_jev.fixtures import fixture
 from mtg_jev.images import png_bytes
 from mtg_jev.provider import MODEL, ProviderError
+from mtg_jev.camera_prompts import prompt_profile, single_document, search_document, crop_document
+from mtg_jev.geometry import Box
+from mtg_jev.images import prepare
+from mtg_jev.refine import proposal_crop
 
 
 class Stub:
@@ -51,9 +55,9 @@ class CameraStateTests(unittest.TestCase):
             state.close()
         self.assertFalse(Path(self.path).exists())
 
-    def test_one_request_per_frame_accounts_usage_and_persists_across_restart(self):
+    def test_single_one_http_accounts_usage_and_persists_across_restart(self):
         state = CameraState(self.config(), Stub)
-        result = state.frame(self.image)
+        result = state.frame(self.image, method='single')
         self.assertEqual(result['api_calls'], 1)
         self.assertEqual(state.client.calls, 1)
         self.assertAlmostEqual(result['budget']['poc_spent_usd'], POC_SPENT_BEFORE_CAMERA+.000042)
@@ -64,7 +68,7 @@ class CameraStateTests(unittest.TestCase):
         state = CameraState(self.config(), Stub)
         self.assertEqual(state.client.calls, 1)
         self.assertEqual(state.client.input_tokens, 1000)
-        state.frame(self.image)
+        state.frame(self.image, method='single')
         self.assertEqual(state.ledger.data['requests_attempted'], 2)
         state.close()
 
@@ -74,9 +78,9 @@ class CameraStateTests(unittest.TestCase):
                 self.calls += 1
                 raise ProviderError('Safe failure')
         state = CameraState(self.config(), Failure)
-        with self.assertRaises(CameraRequestError): state.frame(self.image)
+        with self.assertRaises(CameraRequestError): state.frame(self.image, method='single')
         self.assertEqual(state.client.calls, 1)
-        with self.assertRaises(CameraRequestError): state.frame(self.image)
+        with self.assertRaises(CameraRequestError): state.frame(self.image, method='single')
         self.assertEqual(state.client.calls, 1)
         state.close()
         with self.assertRaises(ValueError): CameraState(self.config(), Stub)
@@ -89,14 +93,14 @@ class CameraStateTests(unittest.TestCase):
 
     def test_request_and_budget_limits_precede_provider_calls(self):
         state = CameraState(self.config(max_requests=1), Stub)
-        state.frame(self.image)
-        with self.assertRaises(CameraRequestError) as caught: state.frame(self.image)
+        state.frame(self.image, method='single')
+        with self.assertRaises(CameraRequestError) as caught: state.frame(self.image, method='single')
         self.assertEqual(caught.exception.code, 'request_limit_reached')
         self.assertEqual(state.client.calls, 1); state.close()
         for kwargs in ({'budget_usd': .001}, {'prior_spend_usd': 4.999}):
             other = str(Path(self.directory.name)/('limit'+str(len(kwargs))+str(kwargs.get('budget_usd'))+'.json'))
             state = CameraState(self.config(usage_ledger=other, **kwargs), Stub)
-            with self.assertRaises(CameraRequestError): state.frame(self.image)
+            with self.assertRaises(CameraRequestError): state.frame(self.image, method='single')
             self.assertEqual(state.client.calls, 0)
             self.assertIsNone(state.ledger.data['pending']); state.close()
 
@@ -115,10 +119,10 @@ class CameraStateTests(unittest.TestCase):
                 entered.set(); finish.wait(timeout=3)
                 return super()._ask(*args)
         state = CameraState(self.config(), Slow); results = []
-        thread = threading.Thread(target=lambda: results.append(state.frame(self.image)))
+        thread = threading.Thread(target=lambda: results.append(state.frame(self.image, method='single')))
         thread.start(); self.assertTrue(entered.wait(timeout=2))
         self.assertTrue(state.snapshot()['inflight'])
-        with self.assertRaises(CameraRequestError) as caught: state.frame(self.image)
+        with self.assertRaises(CameraRequestError) as caught: state.frame(self.image, method='single')
         self.assertEqual(caught.exception.status, 409)
         finish.set(); thread.join(timeout=3)
         self.assertEqual(state.client.calls, 1); self.assertEqual(len(results), 1); state.close()
@@ -128,9 +132,9 @@ class CameraStateTests(unittest.TestCase):
             def _ask(self, *args):
                 r = super()._ask(*args); r['answers']['card']['confidence'] = .1; return r
         state = CameraState(self.config(), Uncertain)
-        r = state.frame(self.image); self.assertEqual(r['detections'], [])
+        r = state.frame(self.image, method='single'); self.assertEqual(r['detections'], [])
         self.assertEqual(r['unresolved_candidates'], 1)
-        r = state.frame(self.image, min_confidence=.05)
+        r = state.frame(self.image, method='single', min_confidence=.05)
         self.assertEqual(r['detections'][0]['confidence'], .1)
         state.close()
 
@@ -160,12 +164,126 @@ class CameraStateTests(unittest.TestCase):
             def _ask(self, *args):
                 r = super()._ask(*args); r['model'] = 'wrong-model-private-body'; return r
         state = CameraState(self.config(), WrongModel)
-        with self.assertRaises(CameraRequestError) as caught: state.frame(self.image)
+        with self.assertRaises(CameraRequestError) as caught: state.frame(self.image, method='single')
         self.assertEqual(caught.exception.code, 'invalid_model_answer')
         self.assertEqual(state.ledger.data['input_tokens'], 1000)
         self.assertIsNone(state.ledger.data['pending'])
         self.assertNotIn('wrong-model-private-body', Path(self.path).read_text())
         state.close()
+
+    def scan_stub(self):
+        source = prepare(self.image); target = Box(.1, .1, .3, .4)
+        tile, region = proposal_crop(source.original, target)
+        l,t,r,b = target.pixels(*source.original.size)
+        local = Box((l-region[0])/tile.original.width, (t-region[1])/tile.original.height,
+                    (r-region[0])/tile.original.width, (b-region[1])/tile.original.height)
+        class Scan(Stub):
+            def _ask(self, image, excluded, factory, questions):
+                self.calls += 1; self.input_tokens += 1000
+                if self.calls == 1:
+                    answers = {'present': {'type': 'noul', 'noul': .99},
+                               'card': {'type': 'box', 'box': target.json(), 'confidence': .9}}
+                elif self.calls == 2:
+                    answers = {'present': {'type': 'noul', 'noul': .99}, 'single': {'type': 'noul', 'noul': .95},
+                               'card': {'type': 'box', 'box': tile.to_prepared(local).json(), 'confidence': .9}}
+                else:
+                    answers = {'present': {'type': 'noul', 'noul': .01}}
+                return {'model': MODEL, 'usage': {'input_tokens': 1000, 'output_tokens': 36}, 'answers': answers}
+        return Scan
+
+    def test_default_is_multi_and_counts_every_stage_http_with_no_eight_card_ceiling(self):
+        state = CameraState(self.config(), self.scan_stub())
+        result = state.frame(self.image)
+        self.assertEqual(result['method'], 'multi')
+        self.assertEqual(result['api_calls'], 3)
+        self.assertEqual(result['usage']['input_tokens'], 3000)
+        self.assertEqual(len(result['detections']), 1)
+        self.assertEqual(state.ledger.data['requests_attempted'], 3)
+        self.assertGreaterEqual(result['max_cards'], 8)
+        self.assertGreaterEqual(result['frame_max_api_calls'], 57)
+        self.assertEqual(result['prompt_sha256'], prompt_profile('multi')['sha256'])
+        state.close()
+
+    def test_frame_cap_keeps_partial_predictions_without_unknown_usage(self):
+        state = CameraState(self.config(frame_max_requests=2), self.scan_stub())
+        result = state.frame(self.image)
+        self.assertEqual(result['api_calls'], 2)
+        self.assertEqual(len(result['detections']), 1)
+        self.assertEqual(result['stop_reason'], 'frame_request_limit')
+        self.assertTrue(result['auto_pause'])
+        self.assertIsNone(state.ledger.data['pending'])
+        state.close()
+
+    def test_missing_confidence_stays_missing_when_cross_crop_geometry_supports_it(self):
+        base = self.scan_stub()
+        class NoConfidence(base):
+            def _ask(self, *args):
+                r = super()._ask(*args)
+                if self.calls == 2: r['answers']['card']['confidence'] = None
+                return r
+        state = CameraState(self.config(), NoConfidence)
+        result = state.frame(self.image)
+        self.assertIsNone(result['detections'][0]['confidence'])
+        self.assertEqual(result['detections'][0]['support'], 'cross_crop_agreement')
+        state.close()
+
+    def test_default_multi_can_return_eight_scripted_targets_without_rank_or_card_hint(self):
+        source = prepare(self.image)
+        scripted = [Box(.04+.24*col, .05+.5*row, .21+.24*col, .35+.5*row)
+                    for row in range(2) for col in range(4)]
+        class Eight(Stub):
+            index = 0
+            def _ask(self, image, excluded, factory, questions):
+                self.calls += 1; self.input_tokens += 1000
+                a = {'present': {'type': 'noul', 'noul': .01}}
+                if self.index < len(scripted):
+                    target = scripted[self.index]
+                    a['present']['noul'] = .99
+                    if questions == 2:
+                        b = image.to_prepared(target)
+                    else:
+                        tile, region = proposal_crop(source.original, target)
+                        l,t,r,bottom = target.pixels(*source.original.size)
+                        local = Box((l-region[0])/tile.original.width, (t-region[1])/tile.original.height,
+                                    (r-region[0])/tile.original.width, (bottom-region[1])/tile.original.height)
+                        b = tile.to_prepared(local); a['single'] = {'type': 'noul', 'noul': .99}
+                        self.index += 1
+                    a['card'] = {'type': 'box', 'box': b.json(), 'confidence': .9}
+                return {'model': MODEL, 'usage': {'input_tokens': 1000, 'output_tokens': 36}, 'answers': a}
+        state = CameraState(self.config(max_requests=80), Eight)
+        result = state.frame(self.image)
+        self.assertEqual(len(result['detections']), 8)
+        self.assertEqual(result['api_calls'], 17)
+        self.assertEqual(state.client.calls, 17)
+        state.close()
+
+    def test_stop_during_scan_finishes_one_usage_but_sends_no_further_http(self):
+        entered, finish = threading.Event(), threading.Event()
+        base = self.scan_stub()
+        class SlowScan(base):
+            def _ask(self, *args):
+                entered.set(); finish.wait(timeout=3); return super()._ask(*args)
+        state = CameraState(self.config(), SlowScan); results = []
+        thread = threading.Thread(target=lambda: results.append(state.frame(self.image, run_id='cancel-run-0001')))
+        thread.start(); self.assertTrue(entered.wait(timeout=2))
+        state.cancel('cancel-run-0001'); finish.set(); thread.join(timeout=3)
+        self.assertEqual(state.client.calls, 1)
+        self.assertEqual(results[0]['stop_reason'], 'scan_cancelled')
+        self.assertEqual(results[0]['usage']['input_tokens'], 1000)
+        self.assertIsNone(state.ledger.data['pending'])
+        with self.assertRaises(CameraRequestError): state.frame(self.image, run_id='cancel-run-0001')
+        self.assertEqual(state.client.calls, 1)
+        state.close()
+
+    def test_camera_prompts_are_inspectable_and_have_no_empty_unreported_context(self):
+        for method in ('single', 'multi', 'ordinal'):
+            profile = prompt_profile(method)
+            text = json.dumps(profile)
+            self.assertNotIn('excluded_boxes', text)
+            self.assertNotIn('not-yet-reported', text)
+            self.assertEqual(profile['model'], MODEL)
+        for factory in (single_document, search_document, crop_document):
+            self.assertEqual(set(factory([], 'ref')['state']), {'photo'})
 
 
 class CameraHTTPTests(unittest.TestCase):
@@ -190,8 +308,14 @@ class CameraHTTPTests(unittest.TestCase):
         status, raw, _ = self.request('GET', '/api/camera/config')
         config = json.loads(raw)
         self.assertEqual(config['mode'], 'mock')
+        self.assertEqual(config['default_method'], 'multi')
+        self.assertEqual(config['max_cards'], 16)
         self.assertNotIn('TYPESAFE', raw.decode())
         self.assertNotIn('Authorization', raw.decode())
+        status, raw, _ = self.request('GET', '/api/camera/prompts?method=multi')
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(raw)['sha256'], prompt_profile('multi')['sha256'])
+        self.assertNotIn('base64', raw.decode())
 
     def test_frame_origin_csrf_size_and_parameter_guards(self):
         image = png_bytes(fixture('single')[0])
@@ -216,6 +340,7 @@ class CameraCLITests(unittest.TestCase):
         with patch('mtg_jev.camera_server.serve_camera') as serve, patch('getpass.getpass') as prompt:
             self.assertEqual(main(['camera']), 0)
             self.assertEqual(serve.call_args.args[1].mode, 'mock')
+            self.assertGreaterEqual(serve.call_args.args[1].max_requests, 57)
             prompt.assert_not_called()
 
     def test_key_prompt_needs_approval_live_mode_and_a_real_local_terminal(self):

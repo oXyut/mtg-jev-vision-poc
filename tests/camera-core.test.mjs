@@ -41,3 +41,10 @@ test('provider failure pauses the loop without automatic retries', async () => {
   loop.start(); await settle();
   assert.equal(calls,1); assert.equal(errors,1); assert.equal(timers,0); assert.equal(loop.running,false);
 });
+test('pausing inside result handler prevents another frame after slow scan', async () => {
+  let timers=0;
+  const loop = new FrameLoop(async()=>({latency:12000}), {
+    onResult:()=>loop.stop(), schedule:()=>++timers});
+  loop.start(); await settle();
+  assert.equal(loop.running,false); assert.equal(timers,0);
+});

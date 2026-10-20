@@ -43,7 +43,12 @@ async def run(executable, screenshots):
             if screenshots:
                 screenshots.mkdir(parents=True, exist_ok=True)
                 await page.screenshot(path=str(screenshots/'camera-idle.png'), full_page=True)
-            await page.locator('#method').select_option('ordinal4')
+            assert await page.locator('#method').input_value() == 'multi'
+            assert '16' in await page.locator('#methodLimits').inner_text()
+            assert '64' in await page.locator('#methodLimits').inner_text()
+            await page.locator('#promptText').wait_for(state='attached')
+            await page.wait_for_function('()=>document.getElementById("promptText").textContent.includes("camera-v2")')
+            assert 'excluded_boxes' not in await page.locator('#promptText').inner_text()
             await page.locator('#interval').select_option('2000')
             await page.locator('#startCamera').click()
             await page.wait_for_function('()=>document.getElementById("video").readyState>=2 && !document.getElementById("startInference").disabled')
@@ -71,6 +76,7 @@ async def run(executable, screenshots):
             if screenshots:
                 await page.screenshot(path=str(screenshots/'camera-mock.png'), full_page=True)
             await page.wait_for_function('()=>document.getElementById("overlayStatus").textContent.includes("期限切れ")', timeout=3000)
+            assert '検出3件' in await page.locator('#overlayStatus').inner_text()
             for _ in range(250):
                 if server.camera.frames >= 2: break
                 await asyncio.sleep(.01)

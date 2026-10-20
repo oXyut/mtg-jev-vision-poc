@@ -49,7 +49,9 @@ def main(argv=None):
     camera.add_argument("--port", type=int, default=8766)
     camera.add_argument("--mode", choices=("mock", "live"), default="mock")
     camera.add_argument("--approve-live", action="store_true")
-    camera.add_argument("--max-requests", type=int, default=20)
+    camera.add_argument("--max-requests", type=int, default=80)
+    camera.add_argument("--max-cards", type=int, default=16)
+    camera.add_argument("--frame-max-requests", type=int, default=64)
     camera.add_argument("--budget-usd", type=float, default=0)
     camera.add_argument("--usage-ledger", default="camera-usage.json")
     camera.add_argument("--prior-spend-usd", type=float, default=.025210836)
@@ -119,7 +121,8 @@ def main(argv=None):
             from .camera_server import CameraConfig, serve_camera
             config = CameraConfig(mode=args.mode, approve_live=args.approve_live,
                                   max_requests=args.max_requests, budget_usd=args.budget_usd,
-                                  usage_ledger=args.usage_ledger, prior_spend_usd=args.prior_spend_usd)
+                                  usage_ledger=args.usage_ledger, prior_spend_usd=args.prior_spend_usd,
+                                  max_cards=args.max_cards, frame_max_requests=args.frame_max_requests)
             config.validate()  # Approval before key prompt or camera/server creation.
             if args.prompt_key:
                 if args.mode != 'live' or not sys.stdin.isatty():

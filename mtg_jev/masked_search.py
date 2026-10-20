@@ -106,7 +106,7 @@ def adoption_reasons(presence,single,confidence,agreement,new_fraction,boundarie
 
 
 def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progress=None,
-                  search_caption=None,correspondence=False):
+                  search_caption=None,correspondence=False,search_document=None,crop_document=None):
     """Experimental search, always incomplete even when the model reports none.
 
     Legacy v2 defaults to the baseline caption and up to three original crops.
@@ -144,7 +144,7 @@ def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progres
         for ordinal in range(settings.max_rounds):
             search,mask=render_search(prepared.original,adopted,settings.mask_margin_pixels)
             tile=prepare(png_bytes(search))
-            a=ask(tile,masked_ranked_document if caption=='baseline' else masked_document,2)
+            a=ask(tile,search_document or (masked_ranked_document if caption=='baseline' else masked_document),2)
             presence=noul(a,'present')
             c={'round':ordinal,'search_presence':presence,'status':'unresolved','reasons':[],'local_attempts':[]}
             candidates.append(c)
@@ -163,7 +163,7 @@ def detect_masked(prepared,client,settings=MaskSettings(),recenter=False,progres
                         search_tile=prepare(png_bytes(search.crop(region)))
                         if search_tile.metadata()!=tile.metadata():raise ValueError('Crop transforms differ')
                         a=ask(tile,lambda unused,ref:correspondence_document(search_tile,ref),4)
-                    else:a=ask(tile,local_document,3)
+                    else:a=ask(tile,crop_document or local_document,3)
                     local_presence,single=noul(a,'present'),noul(a,'single')
                     raw,confidence=read_box(a);local=tile.to_original(raw)
                     refined=to_global(local,region,prepared.original.size)

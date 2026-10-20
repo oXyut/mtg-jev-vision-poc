@@ -27,6 +27,8 @@ python3 -m mtg_jev camera
 
 **http://127.0.0.1:8766** をMacのブラウザで開き、「カメラを開始」→「MOCKの動作確認を開始」で操作できます。mock枠は台本で、画像認識ではありません。カメラも推論も自動開始しません。Jevで試すローカルキー設定、費用枠、停止と遅延の扱いは[カメラ起動手順](docs/camera.md)を参照してください。Cloud Vaultキーはコピーせず、ブラウザへAPIキーを埋め込みません。盤面8枚の実用精度未達は維持します。
 
+Issue #22で既定を「複数枚探索・最大16枚/64API・frame」へ修正しました。単一Boxと順位一括は任意/比較用モードです。cameraが使う指示は [camera_prompts.py](mtg_jev/camera_prompts.py) と画面内で確認できます。[公式調査メモ](docs/jev-camera-review.md)に推奨とPoC実測の区別を記録し、[PR21更新手順](docs/camera.md#pr-21の修正をmacへ反映する)に取得方法をまとめています。複数枚探索は複数HTTPで遅くなり、8枚の精度を保証しません。
+
 ## キーなしで動かす
 
 Python 3.11以上を使用します。依存はPyPIのPillowだけです。
