@@ -11,7 +11,8 @@
     {"check": "git diff --check", "status": "passed"},
     {"check": "official GA, reference, Python 3.37.0 and TypeScript SDK contract cross-check", "status": "passed", "record": "decision-api-spec-evidence.json"},
     {"check": "native bbox output requirement in inspected Decisions contract", "status": "failed", "reason": "unsupported; not a live recognition failure"},
-    {"check": "private Library report materialization", "status": "failed", "files": 2, "helper_exit_code": 1, "reason": "library file transfer failed: download failed", "denied": false, "local_bytes_installed": false},
+    {"check": "private Library report materialization", "status": "failed", "files": 2, "initial_transfer_attempts": 2, "authorized_bounded_retries_smaller_report_only": 1, "fresh_preparation_on_retry": true, "existing_copies_found": 0, "helper_exit_code": 1, "reason": "library file transfer failed: download failed", "explicit_access_denial_reported": false, "http_status_provided": false, "local_bytes_installed": false},
+    {"check": "remote GitHub Actions listing", "status": "not_run", "lookup_outcome": "denied", "reason": "Forbidden", "retried_or_bypassed": false},
     {"check": "same approved image byte/hash and fixed truth verification", "status": "not_run", "reason": "private source bytes unavailable"},
     {"check": "live OpenAI Decisions presence/classification", "status": "not_run", "reason": "private image verification, existing auth route and separate budget approval pending"},
     {"check": "live end-to-end bbox and identity comparison", "status": "not_run", "reason": "native bbox and open-name output unavailable in inspected contract; real identity evaluation incomplete"}
@@ -19,6 +20,8 @@
   "new_model_http": 0,
   "new_model_spend_usd": 0,
   "openai_api_key": "absent (existence check only)",
+  "https_proxy": "present (existence check only)",
+  "existing_openai_network_secret_route": "unknown; domain mapping metadata unavailable",
   "free_credit": "unknown",
   "suggested_first_presence_diagnostic": {
     "status": "pending",

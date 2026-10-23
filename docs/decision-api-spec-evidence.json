@@ -31,5 +31,7 @@
   "new_model_spend_usd": 0,
   "free_credit_status": "unverified",
   "openai_api_key_presence_check": "absent; existence only, no value expansion",
+  "https_proxy_presence_check": "present; existence only, no value expansion",
+  "openai_network_secret_route": "unknown; no per-domain mapping metadata exposed; key absence does not prove route absence",
   "spend_approval_status": "pending"
 }
