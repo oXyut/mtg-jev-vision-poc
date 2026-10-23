@@ -123,6 +123,8 @@ MTG_JEV_ENABLE_LIVE=1 python -m mtg_jev detect data/permitted-photo.jpg \
 
 ## 素材・開発運用
 
+OpenAI Decisions API の対応範囲、Jev と公平に比較できる条件、offline adapter と検証結果は [Decision API 比較記録](docs/decision-api-comparison.md)を参照してください。実 API 比較は未実行で、合成テストの成功をカード認識精度として扱いません。
+
 同梱の生成器は自作の無地矩形だけを描きます。MTGのカード画像・ロゴ、ユーザー画像は同梱しません。MTGの商標・カード権利は各権利者に帰属します。公開できない画像や結果をgitやCI artifactへ追加しないでください。
 
 実装希望・バグは先にIssueへ登録し、作業branchとPRからリンクします。IssueとPRに目的・受入条件・変更・テスト・結果・残課題を残します。mainへ直接実装せず、マージには確認が必要です。CIはモック/スタブのみで、APIキーは設定しません。

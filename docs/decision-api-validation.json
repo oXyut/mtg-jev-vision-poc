@@ -1,0 +1,34 @@
+{
+  "date_utc": "2026-10-23",
+  "base_commit": "9746cb5499543f1cc1e5a6767d9dbfeeec1216c5",
+  "branch": "experiment/decision-api-comparison",
+  "evidence": "offline_synthetic_contract_and_scoring_tests_only",
+  "checks": [
+    {"command": "python -m unittest discover -s tests -v", "status": "passed", "tests": 149, "python": "3.12.14"},
+    {"command": "node --test tests/camera-core.test.mjs", "status": "passed", "tests": 6, "node": "24.19.0"},
+    {"command": "python experiments/compare_static_providers.py plan --output <new-private-path>", "status": "passed", "plan_status": "not_run", "api_calls": 0},
+    {"check": "CLI freeze and score with synthetic JPEG/truth/records in temporary storage", "status": "passed", "included_in_python_tests": true},
+    {"check": "git diff --check", "status": "passed"},
+    {"check": "official GA, reference, Python 3.37.0 and TypeScript SDK contract cross-check", "status": "passed", "record": "decision-api-spec-evidence.json"},
+    {"check": "native bbox output requirement in inspected Decisions contract", "status": "failed", "reason": "unsupported; not a live recognition failure"},
+    {"check": "private Library report materialization", "status": "failed", "files": 2, "helper_exit_code": 1, "reason": "library file transfer failed: download failed", "denied": false, "local_bytes_installed": false},
+    {"check": "same approved image byte/hash and fixed truth verification", "status": "not_run", "reason": "private source bytes unavailable"},
+    {"check": "live OpenAI Decisions presence/classification", "status": "not_run", "reason": "private image verification, existing auth route and separate budget approval pending"},
+    {"check": "live end-to-end bbox and identity comparison", "status": "not_run", "reason": "native bbox and open-name output unavailable in inspected contract; real identity evaluation incomplete"}
+  ],
+  "new_model_http": 0,
+  "new_model_spend_usd": 0,
+  "openai_api_key": "absent (existence check only)",
+  "free_credit": "unknown",
+  "suggested_first_presence_diagnostic": {
+    "status": "pending",
+    "http_cap": 2,
+    "proposed_budget_usd_cap": 0.50,
+    "pessimistic_model_context_calculation_usd": 0.42,
+    "illustrative_cost_if_10000_uncached_input_tokens_per_request_usd": 0.002,
+    "measured_cost": false,
+    "requires_new_authorization": true
+  },
+  "real_recognition_scores": null,
+  "details": "decision-api-comparison.md"
+}
