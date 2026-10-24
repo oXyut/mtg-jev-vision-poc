@@ -1,0 +1,80 @@
+{
+  "evaluation": "real_decisions_api_on_synthetic_generic_card_fixtures",
+  "original_photo_benchmark": false,
+  "matched_jev_comparison": false,
+  "threshold": 0.5,
+  "requests_attempted": 2,
+  "requests_succeeded": 2,
+  "correct_answer_count": 2,
+  "evaluated_answer_count": 2,
+  "known_standard_cost_estimate_usd": "0.000091800",
+  "total_standard_cost_estimate_usd": "0.000091800",
+  "reported_billing_usd": null,
+  "billing_measured": false,
+  "uncertain_reservation_usd": "0.000000000",
+  "total_cap_usd": "0.500000000",
+  "initial_reservation_usd": "0.462000000",
+  "new_jev_requests": 0,
+  "date_utc": "2026-10-24",
+  "provider": "OpenAI Decisions",
+  "model": "gpt-6-luna",
+  "fixture_generator": "mtg_jev.decision_fixtures.synthetic_pair",
+  "fixture_provenance": "Self-authored synthetic generic trading-card illustration and matching empty background; no MTG artwork or original-user photos",
+  "question": "Is any trading card printing visible in photo?",
+  "condition": "generic_plain",
+  "request_order": [
+    "synthetic_card",
+    "synthetic_empty"
+  ],
+  "image_size": [
+    640,
+    480
+  ],
+  "image_format": "PNG",
+  "accounted_cost_upper_bound_usd": "0.000100980",
+  "input_tokens_total": 918,
+  "output_tokens_total": 0,
+  "run_elapsed_seconds": 1.281401,
+  "limitations": [
+    "Two easy synthetic illustrations only; not real MTG recognition performance",
+    "No localization, arbitrary card-name recognition, robustness or repeated-trial estimate",
+    "Not the original-photo benchmark and not a matched Jev comparison",
+    "Token usage is API-reported; currency amounts are usage-based estimates/bounds, not observed invoice charges"
+  ],
+  "fixtures": [
+    {
+      "fixture": "synthetic_card",
+      "expected_present": true,
+      "status": "complete",
+      "probability": 1.0,
+      "predicted_present_at_0_5": true,
+      "correct": true,
+      "latency_seconds": 1.008397,
+      "reported_usage": {
+        "input_tokens": 459,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "cache_write_tokens": 0
+      },
+      "estimated_standard_cost_usd": "0.000045900",
+      "accounted_cost_upper_bound_usd": "0.000050490"
+    },
+    {
+      "fixture": "synthetic_empty",
+      "expected_present": false,
+      "status": "complete",
+      "probability": 0.0,
+      "predicted_present_at_0_5": false,
+      "correct": true,
+      "latency_seconds": 0.226289,
+      "reported_usage": {
+        "input_tokens": 459,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "cache_write_tokens": 0
+      },
+      "estimated_standard_cost_usd": "0.000045900",
+      "accounted_cost_upper_bound_usd": "0.000050490"
+    }
+  ]
+}

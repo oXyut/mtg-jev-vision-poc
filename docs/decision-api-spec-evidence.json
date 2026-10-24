@@ -1,0 +1,70 @@
+{
+  "checked_at_utc": "2026-10-24T02:45:14Z",
+  "provider": "OpenAI (confirmed by user)",
+  "api_endpoint": "https://api.openai.com/v1/decisions",
+  "model": "gpt-6-luna",
+  "auth_contract": "Native Decisions authentication; credentials are never included in reports",
+  "sources": {
+    "ga_2026_10_22": "https://openai.com/index/decisions-api/",
+    "changelog": "https://developers.openai.com/api/docs/changelog",
+    "guide": "https://developers.openai.com/api/docs/guides/decisions",
+    "reference": "https://developers.openai.com/api/reference/resources/decisions/methods/create",
+    "python_revision": "81792ff040a2ca2b70348163049d3d69d5ba95cf",
+    "python_version": "3.37.0",
+    "python_request_path": "src/openai/types/decision_create_params.py",
+    "python_request_blob_sha": "a4e1c948da90ad7e6a5dcdc6d2d35273668a0d50",
+    "python_answer_path": "src/openai/types/decision.py",
+    "python_answer_blob_sha": "0f4e9627ec77c4e0841631ec59c7167a2032ab93",
+    "typescript_revision": "4c11b87c3e5e4fcddeeffc85b55502b2296f49fd",
+    "typescript_path": "src/resources/decisions.ts",
+    "typescript_blob_sha": "556ceb057a74d1b8857e9fe9940858960a250a15",
+    "model_limits": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+    "pricing": "https://developers.openai.com/api/docs/pricing"
+  },
+  "question_types": [
+    "predicate",
+    "choice",
+    "score"
+  ],
+  "answer_types": [
+    "predicate",
+    "choice",
+    "score",
+    "refusal"
+  ],
+  "image_input": true,
+  "native_bbox_in_inspected_contract": false,
+  "arbitrary_identity_output_in_inspected_contract": false,
+  "native_json_is_input_not_arbitrary_output": true,
+  "ga_box_reference": "Box company document-routing example, not bounding-box output",
+  "live_test_status": "completed API smoke on two synthetic generic-card fixtures only",
+  "new_model_http": 2,
+  "new_model_spend_usd": null,
+  "transport_pricing_snapshot": {
+    "id": "decisions-luna-2026-10-24-standard-no-cache",
+    "verified_date_utc": "2026-10-24",
+    "live_rejects_after_verified_utc_date": true,
+    "context_tokens_per_question_upper_bound": 1050000,
+    "max_output_tokens_per_question": 128000,
+    "uncached_input_usd_per_million": "0.10",
+    "output_usd_per_million_decisions_endpoint": "0",
+    "long_context_threshold_input_tokens": 272000,
+    "long_context_input_multiplier": "2",
+    "regional_multiplier_reserved": "1.10",
+    "cache_mode": "explicit_without_breakpoints",
+    "reservation_usd_per_question": "0.231",
+    "two_presence_requests_reservation_usd": "0.462",
+    "reservation_is_not_expected_or_measured_cost": true,
+    "assumptions": [
+      "documented model context bounds for each question",
+      "standard Decisions pricing/funding confirmed for the account",
+      "no caching; zero cache read/write usage required",
+      "shared intact ledger and known prior comparison spend",
+      "provider honors documented limits and prices"
+    ],
+    "fail_closed_on_unconfirmed_bound": true
+  },
+  "estimated_standard_cost_usd": "0.000091800",
+  "accounted_cost_upper_bound_usd": "0.000100980",
+  "live_smoke_evidence": "decisions-fixture-smoke-results.json"
+}

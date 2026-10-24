@@ -1,0 +1,158 @@
+{
+  "date_utc": "2026-10-24",
+  "base_commit": "9746cb5499543f1cc1e5a6767d9dbfeeec1216c5",
+  "branch": "experiment/decision-api-comparison",
+  "evidence": "offline synthetic/stubbed tests plus separate real-API synthetic-fixture smoke",
+  "checks": [
+    {
+      "command": "python -m unittest discover -s tests -v",
+      "status": "passed",
+      "tests": 171,
+      "python": "3.12.14"
+    },
+    {
+      "command": "node --test tests/camera-core.test.mjs",
+      "status": "passed",
+      "tests": 6,
+      "node": "24.19.0"
+    },
+    {
+      "command": "python experiments/compare_static_providers.py plan --output <new-private-path>",
+      "status": "passed",
+      "plan_status": "not_run",
+      "api_calls": 0
+    },
+    {
+      "check": "CLI freeze and score with synthetic JPEG/truth/records in temporary storage",
+      "status": "passed",
+      "included_in_python_tests": true
+    },
+    {
+      "check": "git diff --check",
+      "status": "passed"
+    },
+    {
+      "check": "official GA, reference, Python 3.37.0 and TypeScript SDK contract cross-check",
+      "status": "passed",
+      "record": "decision-api-spec-evidence.json"
+    },
+    {
+      "check": "native bbox output requirement in inspected Decisions contract",
+      "status": "failed",
+      "reason": "unsupported; not a live recognition failure"
+    },
+    {
+      "check": "private Library report materialization",
+      "status": "failed",
+      "files": 2,
+      "initial_transfer_attempts": 2,
+      "authorized_bounded_retries_smaller_report_only": 1,
+      "fresh_preparation_on_retry": true,
+      "existing_copies_found": 0,
+      "helper_exit_code": 1,
+      "reason": "library file transfer failed: download failed",
+      "explicit_access_denial_reported": false,
+      "http_status_provided": false,
+      "local_bytes_installed": false
+    },
+    {
+      "check": "remote GitHub Actions listing",
+      "status": "not_run",
+      "lookup_outcome": "denied",
+      "reason": "Forbidden",
+      "retried_or_bypassed": false
+    },
+    {
+      "check": "same approved image byte/hash and fixed truth verification",
+      "status": "not_run",
+      "reason": "private source bytes unavailable"
+    },
+    {
+      "check": "Original-photo OpenAI Decisions presence/classification",
+      "status": "not_run",
+      "reason": "Original-photo benchmark remains unperformed; fixture smoke is separate"
+    },
+    {
+      "check": "live end-to-end bbox and identity comparison",
+      "status": "not_run",
+      "reason": "native bbox and open-name output unavailable in inspected contract; real identity evaluation incomplete"
+    },
+    {
+      "check": "Decisions native HTTPS transport and durable USD 0.50 aggregate budget gate",
+      "status": "passed_offline",
+      "test_module": "tests/test_decisions_transport.py",
+      "tests": 22,
+      "network": "real urllib handlers with fake HTTPS and socket/DNS connections forbidden; CLI subprocess live opt-in absent",
+      "covers": [
+        "exact schema and usage validation",
+        "opaque placeholder and default proxy",
+        "redaction and bounded response",
+        "redirect/HTTP/connection failures without retry",
+        "cancellation and socket timeout",
+        "known-usage malformed answers",
+        "unknown outcomes and crash/persistence failure",
+        "process/thread exclusion",
+        "prior spend and full-plan hard cap",
+        "stale pricing and missing approval",
+        "original EXIF/dimension/hash and decoder warnings",
+        "completed-prefix replay prevention"
+      ]
+    },
+    {
+      "check": "authorized tracked repository history artifact recovery",
+      "status": "completed_read_only",
+      "available": "existing anonymous Jev phase aggregates including usage/count/cost",
+      "missing": [
+        "original image manifest/hashes",
+        "fixed bbox truth",
+        "individual Jev predictions",
+        "per-request usage/raw responses"
+      ],
+      "matched_historical_comparison_possible": false,
+      "private_storage_or_CI_access": false
+    },
+    {
+      "check": "fresh runtime dependencies and source compilation before transport work",
+      "status": "passed",
+      "python": "3.12.14",
+      "pillow": "12.3.0",
+      "node": "24.19.0",
+      "python_sources_compiled": 41
+    },
+    {
+      "check": "Additional auth/token-count probes",
+      "status": "not_run",
+      "requests": 0,
+      "reason": "No separate auth or token-count requests made"
+    },
+    {
+      "check": "Real Decisions API smoke on self-authored synthetic generic-card PNGs",
+      "status": "passed",
+      "attempted": 2,
+      "succeeded": 2,
+      "correct": 2,
+      "input_tokens": 918,
+      "output_tokens": 0,
+      "cost_is_estimated_not_measured_billing": true,
+      "evidence": "decisions-fixture-smoke-results.json"
+    }
+  ],
+  "new_model_http": 2,
+  "new_model_spend_usd": null,
+  "suggested_first_presence_diagnostic": {
+    "status": "completed_as_separate_synthetic_fixture_smoke",
+    "requests_attempted": 2,
+    "requests_succeeded": 2,
+    "task_total_cap_usd": "0.50",
+    "initial_worst_case_reservation_usd": "0.462",
+    "uncertain_reservation_usd": "0",
+    "reported_billing_usd": null,
+    "original_photo_benchmark": "not_run",
+    "no_new_budget_allowance_created": true
+  },
+  "real_recognition_scores": null,
+  "details": "decision-api-comparison.md",
+  "budget_guarantee_details": "decisions-transport.md",
+  "estimated_standard_cost_usd": "0.000091800",
+  "accounted_cost_upper_bound_usd": "0.000100980"
+}

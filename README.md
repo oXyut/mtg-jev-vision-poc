@@ -1,5 +1,7 @@
 # MTG × Jev vision PoC
 
+OpenAI Decisions の比較準備と、実行を明示的に有効化する送信処理・USD 0.50予算ガードは[比較記録](docs/decision-api-comparison.md)と[送信仕様](docs/decisions-transport.md)を参照。[合成画像での実API疎通確認](docs/decisions-fixture-smoke.md)は2件成功・既知ラベル2/2一致。元写真の性能評価・Jevとの対応比較は未実施です。
+
 Jev 1.14の画像入力とBoxで、複数のMTGカードの位置を検出できるか調べるPoCです。**実写真2枚の初回検証では、各1/8枚を検出後に低確信で停止し、実用目標は未達です。実カード名の同定精度は未評価です。** [固定条件と実測結果](docs/live-baseline.md)を参照してください。
 
 Issue #13で境界断片・誤統合・短名・完了条件を[オフライン修正](docs/offline-fixes.md)し、送信機能のない4×4core/64質問plannerを追加した。旧実測は保持し、追加API呼出しと実写真の改善評価は行っていない。
@@ -122,6 +124,8 @@ MTG_JEV_ENABLE_LIVE=1 python -m mtg_jev detect data/permitted-photo.jpg \
 確認時の料金は入力100万tokenあたり$0.042、出力無料です。画像も入力usageへ算入され、事前token見積もりの指針は未公開です。ローカル予算ガードは次の呼出しに65,536入力token分を予約し、判明したusageを加算します。**これは料金表に基づく推定で、プロバイダー側の厳密な課金上限ではありません。** 失敗・タイムアウトでも課金され、usageが返らない可能性があります。厳密な上限にはプロバイダー側の制限も必要です。
 
 ## 素材・開発運用
+
+OpenAI Decisions API の対応範囲、Jev と公平に比較できる条件、offline adapter と検証結果は [Decision API 比較記録](docs/decision-api-comparison.md)を参照してください。実 API 比較は未実行で、合成テストの成功をカード認識精度として扱いません。
 
 同梱の生成器は自作の無地矩形だけを描きます。MTGのカード画像・ロゴ、ユーザー画像は同梱しません。MTGの商標・カード権利は各権利者に帰属します。公開できない画像や結果をgitやCI artifactへ追加しないでください。
 
