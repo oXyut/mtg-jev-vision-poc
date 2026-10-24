@@ -39,7 +39,10 @@ def verification_document(image_bytes, condition, task='presence'):
         if image.format not in ('JPEG', 'PNG') or getattr(image, 'is_animated', False) or image.getexif():
             raise ValueError('Requires EXIF-free still JPEG/PNG')
         mime = 'image/jpeg' if image.format == 'JPEG' else 'image/png'
-        image.verify()
+    # PNG getexif() can load the image and close its stream. Verification must
+    # start from a fresh decoder, without re-encoding the supplied bytes.
+    with Image.open(io.BytesIO(image_bytes)) as check:
+        check.verify()
     target = 'trading card' if condition.startswith('generic_') else 'Magic: The Gathering card'
     text = f'Is any {target} printing visible in photo?'
     if condition.endswith('_explicit'):

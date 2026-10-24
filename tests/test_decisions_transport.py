@@ -24,6 +24,7 @@ from mtg_jev.decisions_budget import (BudgetError, CAP_NANOS, ComparisonBudget, 
                                      PRICING_ID, check_pricing, nanos, reservation, usage_cost)
 from mtg_jev.decisions_transport import (DecisionsClient, DecisionsError, FrozenVerification,
                                         MAX_RESPONSE_BYTES)
+from mtg_jev.decision_fixtures import prepare as prepare_smoke, summarize
 
 MARKER = '__artificial_decisions_marker_not_a_credential__'
 PROXY = 'http://proxy.test.invalid:3128'
@@ -423,6 +424,55 @@ class TransportTests(unittest.TestCase):
         self.assertNotIn(str(self.folder), result.stderr)
         self.assertEqual(result.stdout, '')
         self.assertEqual(json.loads(self.ledger.read_text())['entries'][0]['state'], 'planned')
+
+    def test_fixture_mode_is_explicit_and_never_weakens_original_photo_checks(self):
+        manifest = prepare_smoke(str(self.folder / 'smoke'))
+        protocol = FrozenVerification(str(manifest))
+        self.assertEqual(protocol.basis, 'synthetic_fixture_smoke')
+        self.assertEqual(protocol.fixture_truth, (True, False))
+        self.assertEqual(protocol.questions, [1, 1])
+        self.assertEqual(protocol.preflight()['plan_reservation_usd'], '0.462000000')
+        value = json.loads(manifest.read_text())
+        for removed in ('evaluation_kind', 'fixture_provenance', 'fixture_truth'):
+            changed = {k: v for k, v in value.items() if k != removed}
+            manifest.write_text(json.dumps(changed))
+            with self.assertRaises(DecisionsError): FrozenVerification(str(manifest))
+        manifest.write_text(json.dumps(value))
+        with self.assertRaises(FileExistsError): prepare_smoke(str(manifest.parent))
+        self.assertNotIn('fixture_truth', protocol._documents[0].decode())
+
+    def test_fixture_summary_separates_correctness_usage_estimate_and_billing(self):
+        entries = []
+        for p in (.9, .1):
+            entries.append({'status': 'complete', 'answers': {'present': {'status': 'answered', 'probability': p}},
+                            'usage': read_usage(response()), 'seconds': .25, 'cost_upper_bound_usd': '0.000011000',
+                            'reserved_upper_bound_usd': '0.000000000', 'http_attempted_upper_bound': 1})
+        result = summarize(entries)
+        self.assertEqual((result['requests_attempted'], result['requests_succeeded'], result['correct_answer_count']), (2, 2, 2))
+        self.assertEqual(result['total_standard_cost_estimate_usd'], '0.000020000')
+        self.assertIsNone(result['reported_billing_usd'])
+        entries[0].update(status='uncertain', answers=None, usage=None, seconds=None,
+                          cost_upper_bound_usd=None, reserved_upper_bound_usd='0.231000000')
+        result = summarize(entries)
+        self.assertIsNone(result['total_standard_cost_estimate_usd'])
+        self.assertIsNone(result['fixtures'][0]['correct'])
+        self.assertEqual(result['uncertain_reservation_usd'], '0.231000000')
+
+    def test_http_error_diagnostics_are_allowlisted_without_raw_messages(self):
+        protocol = self.protocol()
+        for i, (code, expected) in enumerate((('insufficient_quota', 'insufficient_quota'),
+                                             (MARKER, None), ('model_not_found', 'model_not_found'))):
+            budget = self.budget(protocol, path=self.folder / f'diagnostic-{i}.json')
+            fake = FakeHTTPS(code=429, body=json.dumps({'error': {'code': code, 'message': MARKER}}).encode())
+            with self.fake(fake):
+                with self.assertRaises(DecisionsError) as caught:
+                    DecisionsClient(protocol, budget, approve_live=True).run()
+            self.assertEqual(caught.exception.kind, 'http_error')
+            self.assertEqual(caught.exception.http_status, 429)
+            self.assertEqual(caught.exception.provider_code, expected)
+            self.assertNotIn(MARKER, str(caught.exception))
+            self.assertNotIn(MARKER, budget.path.read_text())
+            self.assertEqual(len(fake.requests), 1)
 
 
 if __name__ == '__main__':

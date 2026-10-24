@@ -3,7 +3,7 @@
   "provider": "OpenAI (confirmed by user)",
   "api_endpoint": "https://api.openai.com/v1/decisions",
   "model": "gpt-6-luna",
-  "auth_contract": "Bearer OPENAI_API_KEY opaque network placeholder; runtime presence true; no real auth/proxy/billing probe",
+  "auth_contract": "Native Decisions authentication; credentials are never included in reports",
   "sources": {
     "ga_2026_10_22": "https://openai.com/index/decisions-api/",
     "changelog": "https://developers.openai.com/api/docs/changelog",
@@ -37,14 +37,9 @@
   "arbitrary_identity_output_in_inspected_contract": false,
   "native_json_is_input_not_arbitrary_output": true,
   "ga_box_reference": "Box company document-routing example, not bounding-box output",
-  "live_test_status": "not_run",
-  "new_model_http": 0,
-  "new_model_spend_usd": 0,
-  "free_credit_status": "unverified",
-  "openai_api_key_presence_check": "present; boolean only, no value or identifying derivative displayed or persisted",
-  "https_proxy_presence_check": "present; existence only, no value expansion",
-  "openai_network_secret_route": "user configured api.openai.com mapping; fresh runtime value present; actual proxy substitution untested",
-  "spend_approval_status": "USD 0.50 approved for this comparison; live paused until original approved photos arrive",
+  "live_test_status": "completed API smoke on two synthetic generic-card fixtures only",
+  "new_model_http": 2,
+  "new_model_spend_usd": null,
   "transport_pricing_snapshot": {
     "id": "decisions-luna-2026-10-24-standard-no-cache",
     "verified_date_utc": "2026-10-24",
@@ -68,5 +63,8 @@
       "provider honors documented limits and prices"
     ],
     "fail_closed_on_unconfirmed_bound": true
-  }
+  },
+  "estimated_standard_cost_usd": "0.000091800",
+  "accounted_cost_upper_bound_usd": "0.000100980",
+  "live_smoke_evidence": "decisions-fixture-smoke-results.json"
 }

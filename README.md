@@ -1,6 +1,6 @@
 # MTG × Jev vision PoC
 
-OpenAI Decisions の比較準備と、実行を明示的に有効化する送信処理・USD 0.50予算ガードは[比較記録](docs/decision-api-comparison.md)と[送信仕様](docs/decisions-transport.md)を参照。元写真待ちのため実API比較は未実行です。
+OpenAI Decisions の比較準備と、実行を明示的に有効化する送信処理・USD 0.50予算ガードは[比較記録](docs/decision-api-comparison.md)と[送信仕様](docs/decisions-transport.md)を参照。[合成画像での実API疎通確認](docs/decisions-fixture-smoke.md)は2件成功・既知ラベル2/2一致。元写真の性能評価・Jevとの対応比較は未実施です。
 
 Jev 1.14の画像入力とBoxで、複数のMTGカードの位置を検出できるか調べるPoCです。**実写真2枚の初回検証では、各1/8枚を検出後に低確信で停止し、実用目標は未達です。実カード名の同定精度は未評価です。** [固定条件と実測結果](docs/live-baseline.md)を参照してください。
 

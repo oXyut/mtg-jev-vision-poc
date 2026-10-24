@@ -26,6 +26,47 @@ MAX_RESPONSE_BYTES = 64 * 1024
 class DecisionsError(Exception):
     """Only fixed, redacted messages cross the transport boundary."""
 
+    def __init__(self, message, *, kind='stopped', http_status=None, provider_code=None):
+        super().__init__(message)
+        self.kind, self.http_status, self.provider_code = kind, http_status, provider_code
+        self.elapsed_seconds = None
+
+
+def _failure(exc):
+    """Allowlist diagnostics; never expose server messages, headers or URLs."""
+    if isinstance(exc, urllib.error.HTTPError):
+        code = None
+        allowed = {'insufficient_quota', 'invalid_api_key', 'model_not_found',
+                   'unsupported_model', 'unsupported_endpoint', 'permission_denied',
+                   'billing_hard_limit_reached', 'billing_not_active',
+                   'rate_limit_exceeded', 'access_terminated', 'organization_deactivated'}
+        try:
+            raw = exc.read(16 * 1024 + 1)
+            if len(raw) <= 16 * 1024:
+                candidate = _json(raw).get('error', {}).get('code')
+                if isinstance(candidate, str) and candidate in allowed:
+                    code = candidate
+        except (OSError, ValueError, TypeError, AttributeError, RecursionError):
+            pass
+        finally:
+            exc.close()
+        return DecisionsError('Decisions HTTP failure; body omitted; no retry',
+                              kind='http_error', http_status=exc.code, provider_code=code)
+    if isinstance(exc, TimeoutError) or (isinstance(exc, urllib.error.URLError)
+                                         and isinstance(exc.reason, TimeoutError)):
+        kind = 'timeout'
+    elif isinstance(exc, urllib.error.URLError) or isinstance(exc, OSError):
+        kind = 'connection_failure'
+    elif isinstance(exc, BudgetError):
+        kind = 'accounting_failure'
+    elif isinstance(exc, (KeyboardInterrupt, SystemExit)):
+        kind = 'interrupted'
+    elif isinstance(exc, DecisionsError):
+        kind = exc.kind
+    else:
+        kind = 'invalid_response_or_usage'
+    return DecisionsError('Decisions request stopped; inspect private ledger; no retry', kind=kind)
+
 
 def _read(path, maximum):
     with private_path(path).open('rb') as handle:
@@ -61,7 +102,10 @@ def _image(record, *, original=False):
                     or not (0 < image.width <= 1280 and 0 < image.height <= 960)
                     or (original and (image.format != 'JPEG' or image.size != (1280, 960)))):
                 raise ValueError()
-            image.verify()
+        # PNG metadata inspection may load/close its stream. Verify a fresh
+        # decoder against the same immutable bytes instead of reusing it.
+        with Image.open(io.BytesIO(data)) as check:
+            check.verify()
     return data
 
 
@@ -76,25 +120,49 @@ class FrozenVerification:
     def __init__(self, manifest_path):
         try:
             manifest = _json(_read(manifest_path, 64 * 1024))
-            required = {'schema', 'images_approved', 'request_count_approved', 'pricing_id',
-                        'standard_pricing_and_funding_reviewed', 'originals', 'runs'}
-            optional = {'historical_manifest', 'fixed_crop_set_approved'}
+            required = {'schema', 'images_approved', 'request_count_approved', 'pricing_id', 'originals', 'runs'}
+            kind = manifest.get('evaluation_kind', 'original_photos')
+            if kind == 'original_photos':
+                required.add('standard_pricing_and_funding_reviewed')
+                optional = {'historical_manifest', 'fixed_crop_set_approved', 'evaluation_kind'}
+                reviewed = manifest.get('standard_pricing_and_funding_reviewed') is True
+            elif kind == 'fixture_smoke':
+                required.update({'standard_decisions_pricing_reviewed', 'fixture_truth', 'fixture_provenance'})
+                optional = {'evaluation_kind'}
+                reviewed = manifest.get('standard_decisions_pricing_reviewed') is True
+            else:
+                raise ValueError()
             if (not isinstance(manifest, dict) or not required <= set(manifest)
                     or set(manifest) - required - optional
                     or type(manifest['schema']) is not int or manifest['schema'] != 1
                     or manifest['images_approved'] is not True
-                    or manifest['standard_pricing_and_funding_reviewed'] is not True
+                    or not reviewed
                     or manifest['pricing_id'] != PRICING_ID
                     or not isinstance(manifest['originals'], list) or len(manifest['originals']) != 2
                     or not isinstance(manifest['runs'], list) or not 1 <= len(manifest['runs']) <= 2
                     or type(manifest['request_count_approved']) is not int
                     or manifest['request_count_approved'] != len(manifest['runs'])):
                 raise ValueError()
-            originals = [_image(record, original=True) for record in manifest['originals']]
+            originals = [_image(record, original=kind == 'original_photos') for record in manifest['originals']]
             hashes = [hashlib.sha256(data).hexdigest() for data in originals]
             if len(set(hashes)) != 2:
                 raise ValueError()
             self.basis = 'fresh_evaluation_historical_match_unverified'
+            self.fixture_truth = None
+            if kind == 'fixture_smoke':
+                truth, provenance = manifest['fixture_truth'], manifest['fixture_provenance']
+                if (not isinstance(truth, list) or len(truth) != 2 or any(type(t) is not bool for t in truth)
+                        or not isinstance(provenance, list) or len(provenance) != 2):
+                    raise ValueError()
+                for source in provenance:
+                    if (not isinstance(source, dict) or set(source) != {'kind', 'description'}
+                            or source['kind'] not in ('synthetic', 'public')
+                            or not isinstance(source['description'], str) or not 1 <= len(source['description']) <= 500):
+                        raise ValueError()
+                types = {source['kind'] for source in provenance}
+                self.basis = ('synthetic_fixture_smoke' if types == {'synthetic'} else
+                              'public_fixture_smoke' if types == {'public'} else 'mixed_fixture_smoke')
+                self.fixture_truth = tuple(truth)
             historical_hashes = None
             if 'historical_manifest' in manifest:
                 historical = _json(_read(manifest['historical_manifest'], 64 * 1024))
@@ -108,6 +176,8 @@ class FrozenVerification:
             for run in manifest['runs']:
                 if (not isinstance(run, dict) or not {'source', 'task', 'condition'} <= set(run)
                         or type(run['source']) is not int or run['source'] not in (0, 1)):
+                    raise ValueError()
+                if kind == 'fixture_smoke' and run['task'] != 'presence':
                     raise ValueError()
                 if run['task'] == 'presence':
                     if set(run) != {'source', 'task', 'condition'}:
@@ -132,7 +202,7 @@ class FrozenVerification:
             # request bytes. These digests never appear in console summaries.
             self.sha256 = digest({'approval': manifest, 'historical_hashes': historical_hashes,
                                   'documents': [hashlib.sha256(d).hexdigest() for d in self._documents]})
-        except (OSError, ValueError, TypeError, KeyError, AttributeError, OverflowError, RecursionError,
+        except (OSError, ValueError, TypeError, KeyError, AttributeError, OverflowError, RecursionError, RuntimeError,
                 Image.DecompressionBombError, Warning):
             raise DecisionsError('Approved private input manifest invalid or unavailable; contents omitted') from None
 
@@ -148,7 +218,7 @@ class FrozenVerification:
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
-        raise DecisionsError('Decisions redirect refused; no retry')
+        raise DecisionsError('Decisions redirect refused; no retry', kind='redirect_refused')
 
 
 class DecisionsClient:
@@ -198,7 +268,7 @@ class DecisionsClient:
                 start = time.monotonic()
                 try:
                     if cancelled():
-                        raise DecisionsError('Cancelled before sending; no request attempted')
+                        raise DecisionsError('Cancelled before sending; no request attempted', kind='cancelled_before_send')
                     sent = True  # Any interruption from this point may have been charged.
                     with self._opener.open(request, timeout=self.timeout) as response:
                         # Bounded response; never read or expose error bodies/headers.
@@ -213,16 +283,16 @@ class DecisionsClient:
                     except ValueError:
                         # Charge known usage even when the prediction is unusable.
                         self.budget.finish(index, usage, None, time.monotonic() - start)
-                        raise DecisionsError('Invalid Decisions answers; usage reconciled; no retry') from None
+                        raise DecisionsError('Invalid Decisions answers; usage reconciled; no retry', kind='invalid_answers') from None
                     self.budget.finish(index, usage, answers, time.monotonic() - start)
                     if cancelled():
                         self.budget.stop(index, sent=True)
-                        raise DecisionsError('Cancelled after response; usage reconciled; no retry')
+                        raise DecisionsError('Cancelled after response; usage reconciled; no retry', kind='cancelled_after_response')
                 except BaseException as exc:
-                    if isinstance(exc, urllib.error.HTTPError):
-                        exc.close()
+                    failure = _failure(exc)
+                    failure.elapsed_seconds = time.monotonic() - start
                     self.budget.stop(index, sent=sent)
-                    raise DecisionsError('Decisions request stopped; inspect private ledger; no retry') from None
+                    raise failure from None
             return {'evidence': 'live', 'evaluation_basis': self.protocol.basis,
                     'native_bbox': False, 'native_open_identity': False,
                     'api_calls_this_command': len(self.protocol.questions) - before,

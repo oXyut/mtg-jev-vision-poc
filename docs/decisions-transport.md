@@ -1,6 +1,6 @@
 # Decisions transport and USD 0.50 gate — Issue #25
 
-Status, 2026-10-24: implemented and tested with **stubbed HTTP/synthetic fixtures only**. No real OpenAI request, authentication probe, token-count call, recognition result or charge. The original approved photos are still unavailable. The user approved USD 0.50 for this comparison; live execution remains paused until the original inputs arrive. No funding, autocharge, plan, credential or environment setting was changed.
+Status, 2026-10-24: the real Decisions API smoke on two self-authored synthetic generic-card fixtures completed successfully. Both declared fixture labels matched; actual usage/latency and estimated cost are in [the smoke report](decisions-fixture-smoke.md). This is separate from the unperformed original-photo benchmark and matched Jev comparison. The original task-wide USD 0.50 cap was used, with no payment, account or permission changes.
 
 ## Contract and pricing evidence
 
@@ -8,7 +8,7 @@ Reviewed the official [create reference](https://developers.openai.com/api/refer
 
 The guide prices uncached input at USD 0.10/M and output at zero. The model has a 1,050,000-token context, a 128,000-token output limit, a 2x input multiplier above 272,000 input tokens, and a 10% regional uplift. The request explicitly disables caching with no breakpoints. Nonzero cache usage, inconsistent counters or limits outside the snapshot cause a halt. No token-count endpoint is needed or called.
 
-The snapshot ID is `decisions-luna-2026-10-24-standard-no-cache`. Live preflight rejects a different ID or a later UTC date. Before later use, review the official contract, context limits and rates and update the snapshot and its tests. An account review must attest that standard pricing/funding applies; no account balance or billing validity is inferred from key presence. No unsupported processing-tier field is added to the API request.
+The snapshot ID is `decisions-luna-2026-10-24-standard-no-cache`. Live preflight rejects a different ID or a later UTC date. Before later use, review the official contract, context limits and rates and update the snapshot and its tests. The original-photo mode retains its account-review attestation. The separately authorized fixture-smoke mode requires review of the documented standard Decisions endpoint rates and does not claim an account balance or invoice review. No unsupported processing-tier field is added to the API request.
 
 ## Aggregate budget guarantee and scope
 
@@ -64,7 +64,7 @@ python experiments/run_decisions_verification.py preflight \
   --ledger /private/issue-25-budget.json --prior-spend-usd 0
 ```
 
-Initialization alone can preserve a historical snapshot; `preflight` and live execution require a current snapshot. `run` additionally requires both `--approve-live` and `MTG_DECISIONS_ENABLE_LIVE=1`. Neither is enabled during this work. The key is read only after input, pricing, budget and opt-in checks. It is treated as an opaque `OPENAI_API_KEY` placeholder and sent only in Bearer to the fixed HTTPS endpoint. Default proxy handling and TLS validation remain enabled. All redirects are refused and there is no proxy bypass or retry fallback.
+Initialization alone can preserve a historical snapshot; `preflight` and live execution require a current snapshot. `run` additionally requires both `--approve-live` and `MTG_DECISIONS_ENABLE_LIVE=1`. Those opt-ins were used only for the two recorded synthetic-fixture requests. The key is read only after input, pricing, budget and opt-in checks. It is treated as an opaque `OPENAI_API_KEY` placeholder and sent only in Bearer to the fixed HTTPS endpoint. Default proxy handling and TLS validation remain enabled. All redirects are refused and there is no proxy bypass or retry fallback. Error responses are parsed only for an allowlisted provider error code; messages, headers and raw bodies are never emitted.
 
 The private ledger atomically stores only normalized predicates/refusals, token counters, timing, state and cost bounds alongside its private binding. It contains no credential, image, coordinate, original path or raw response. Console output contains fixed status labels/counts/preflight cost bounds, never predictions or identifying bindings. All caught errors are redacted. A cancelled event is checked before/after each request; a blocked synchronous HTTP operation can finish or hit its socket inactivity timeout (at most 30 seconds) before cancellation is observed. There is no background worker that can outlive accounting, no immediate remote-cancellation promise, and no strict wall-clock timeout guarantee.
 
@@ -77,4 +77,8 @@ Read-only examination of every locally available commit's tracked artifact paths
 - **Not run:** original-byte/hash matching, fixed truth recovery, matched historical replay, real presence/crop recognition, real latency/usage/billing or identity evaluation. Without historical artifacts, any later evaluation must be labeled fresh unless its matching evidence is actually recovered.
 - **Pending live prerequisites:** the two approved original files and private approval; a current confirmed pricing/funding configuration; explicit request-count/opt-in; the single durable budget book with known prior spend. Fixed crops need their own approved set/provenance. Exact bbox/identity comparisons remain unsupported.
 
-Earlier Library transfers exhausted their bounded retry and remote Actions listing was denied `Forbidden`; these actions remain unattempted here. Authentication validity, actual managed-proxy substitution and account credit remain unknown. Model HTTP **0**, charges **USD 0.00**, no merge/deploy.
+Earlier Library transfers exhausted their bounded retry and remote Actions listing was denied `Forbidden`; these actions remain unattempted here. The separate fixture smoke made **2** real Decisions image requests; its usage-based cost estimate is **USD 0.000091800**, with invoice billing unmeasured. No merge/deploy.
+
+## Explicit fixture-smoke mode
+
+`evaluation_kind: fixture_smoke` is separate from the default original-photo mode. It requires `standard_decisions_pricing_reviewed: true`, two boolean `fixture_truth` labels and two `fixture_provenance` records (`kind` synthetic/public and a description). Only presence runs are accepted. It allows smaller EXIF-free still PNG/JPEG fixtures, without changing original-photo JPEG/dimension requirements. Truth and provenance never enter inference. Self-authored fixtures can be prepared offline with `mtg_jev.decision_fixtures.prepare`; it refuses overwrites. The completed synthetic smoke and spent/remaining reservations are recorded separately.

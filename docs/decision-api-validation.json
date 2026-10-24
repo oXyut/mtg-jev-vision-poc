@@ -2,12 +2,12 @@
   "date_utc": "2026-10-24",
   "base_commit": "9746cb5499543f1cc1e5a6767d9dbfeeec1216c5",
   "branch": "experiment/decision-api-comparison",
-  "evidence": "offline_synthetic_and_stubbed_http_only",
+  "evidence": "offline synthetic/stubbed tests plus separate real-API synthetic-fixture smoke",
   "checks": [
     {
       "command": "python -m unittest discover -s tests -v",
       "status": "passed",
-      "tests": 168,
+      "tests": 171,
       "python": "3.12.14"
     },
     {
@@ -68,9 +68,9 @@
       "reason": "private source bytes unavailable"
     },
     {
-      "check": "live OpenAI Decisions presence/classification",
+      "check": "Original-photo OpenAI Decisions presence/classification",
       "status": "not_run",
-      "reason": "original approved files unavailable; current private input/pricing/funding preflight not run"
+      "reason": "Original-photo benchmark remains unperformed; fixture smoke is separate"
     },
     {
       "check": "live end-to-end bbox and identity comparison",
@@ -81,7 +81,7 @@
       "check": "Decisions native HTTPS transport and durable USD 0.50 aggregate budget gate",
       "status": "passed_offline",
       "test_module": "tests/test_decisions_transport.py",
-      "tests": 19,
+      "tests": 22,
       "network": "real urllib handlers with fake HTTPS and socket/DNS connections forbidden; CLI subprocess live opt-in absent",
       "covers": [
         "exact schema and usage validation",
@@ -120,30 +120,39 @@
       "python_sources_compiled": 41
     },
     {
-      "check": "live OpenAI auth/token-count/smoke endpoints",
+      "check": "Additional auth/token-count probes",
       "status": "not_run",
       "requests": 0,
-      "reason": "explicitly forbidden until approved originals arrive"
+      "reason": "No separate auth or token-count requests made"
+    },
+    {
+      "check": "Real Decisions API smoke on self-authored synthetic generic-card PNGs",
+      "status": "passed",
+      "attempted": 2,
+      "succeeded": 2,
+      "correct": 2,
+      "input_tokens": 918,
+      "output_tokens": 0,
+      "cost_is_estimated_not_measured_billing": true,
+      "evidence": "decisions-fixture-smoke-results.json"
     }
   ],
-  "new_model_http": 0,
-  "new_model_spend_usd": 0,
-  "openai_api_key": "present (boolean-only runtime check)",
-  "https_proxy": "present (existence check only)",
-  "existing_openai_network_secret_route": "user configured; fresh runtime value present; actual substitution untested",
-  "free_credit": "unknown",
+  "new_model_http": 2,
+  "new_model_spend_usd": null,
   "suggested_first_presence_diagnostic": {
-    "status": "paused_until_original_photos",
-    "http_cap": 2,
-    "measured_cost": false,
-    "requires_new_authorization": false,
-    "approved_budget_usd_cap": 0.5,
-    "implemented_worst_case_reservation_usd": "0.462",
-    "reservation_includes_regional_premium": true,
-    "requires_explicit_request_count_and_live_opt_in": true
+    "status": "completed_as_separate_synthetic_fixture_smoke",
+    "requests_attempted": 2,
+    "requests_succeeded": 2,
+    "task_total_cap_usd": "0.50",
+    "initial_worst_case_reservation_usd": "0.462",
+    "uncertain_reservation_usd": "0",
+    "reported_billing_usd": null,
+    "original_photo_benchmark": "not_run",
+    "no_new_budget_allowance_created": true
   },
   "real_recognition_scores": null,
   "details": "decision-api-comparison.md",
-  "spend_approval": "USD 0.50 approved; live requests paused for original photos",
-  "budget_guarantee_details": "decisions-transport.md"
+  "budget_guarantee_details": "decisions-transport.md",
+  "estimated_standard_cost_usd": "0.000091800",
+  "accounted_cost_upper_bound_usd": "0.000100980"
 }
