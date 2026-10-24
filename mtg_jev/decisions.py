@@ -1,4 +1,4 @@
-"""OpenAI Decisions contract subset, checked 2026-10-23. Offline only.
+"""Pure OpenAI Decisions document/answer adapters, checked 2026-10-24.
 
 Reference: https://developers.openai.com/api/reference/resources/decisions/methods/create
 Native image parts preserve supplied bytes. No credential or HTTP code is used.
@@ -72,21 +72,37 @@ def read_verification(response, task='presence'):
                 raise ValueError()
             result[name] = {'status': 'refused' if answer['type'] == 'refusal' else 'answered',
                             'probability': None if answer['type'] == 'refusal' else probability(answer['probability'])}
-        usage = response['usage']
-        counts = {}
-        for key in ('input_tokens', 'output_tokens'):
-            if type(usage[key]) is not int or usage[key] < 0:
-                raise ValueError()
-            counts[key] = usage[key]
-        details = usage['input_tokens_details']
-        for key in ('cached_tokens', 'cache_write_tokens'):
-            if type(details[key]) is not int or details[key] < 0:
-                raise ValueError()
-            counts[key] = details[key]
-        if counts['cached_tokens'] + counts['cache_write_tokens'] > counts['input_tokens']:
-            raise ValueError()
+        counts = read_usage(response)
         # Preserve cache counters for later accounting. Never price cache writes
         # or an unknown processing tier as uncached input or zero spend.
         return {'answers': result, 'usage': counts}
     except (KeyError, TypeError, ValueError, AttributeError):
         raise ValueError('Invalid Decisions verification response; contents omitted') from None
+
+
+def read_usage(response, strict=False):
+    """Read usage independently so a malformed answer cannot erase known spend.
+
+    The live transport requires the complete documented usage object. The pure
+    adapter continues to accept the original offline interchange subset.
+    """
+    try:
+        if response['model'] != MODEL:
+            raise ValueError()
+        usage = response['usage']
+        counts = {key: usage[key] for key in ('input_tokens', 'output_tokens')}
+        counts.update({key: usage['input_tokens_details'][key]
+                       for key in ('cached_tokens', 'cache_write_tokens')})
+        if any(type(value) is not int or value < 0 for value in counts.values()):
+            raise ValueError()
+        if counts['cached_tokens'] + counts['cache_write_tokens'] > counts['input_tokens']:
+            raise ValueError()
+        if strict:
+            total = usage['total_tokens']
+            reasoning = usage['output_tokens_details']['reasoning_tokens']
+            if (type(total) is not int or total != counts['input_tokens'] + counts['output_tokens']
+                    or type(reasoning) is not int or not 0 <= reasoning <= counts['output_tokens']):
+                raise ValueError()
+        return counts
+    except (KeyError, TypeError, ValueError, AttributeError):
+        raise ValueError('Invalid Decisions usage; contents omitted') from None

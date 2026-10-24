@@ -1,5 +1,7 @@
 # MTG × Jev vision PoC
 
+OpenAI Decisions の比較準備と、実行を明示的に有効化する送信処理・USD 0.50予算ガードは[比較記録](docs/decision-api-comparison.md)と[送信仕様](docs/decisions-transport.md)を参照。元写真待ちのため実API比較は未実行です。
+
 Jev 1.14の画像入力とBoxで、複数のMTGカードの位置を検出できるか調べるPoCです。**実写真2枚の初回検証では、各1/8枚を検出後に低確信で停止し、実用目標は未達です。実カード名の同定精度は未評価です。** [固定条件と実測結果](docs/live-baseline.md)を参照してください。
 
 Issue #13で境界断片・誤統合・短名・完了条件を[オフライン修正](docs/offline-fixes.md)し、送信機能のない4×4core/64質問plannerを追加した。旧実測は保持し、追加API呼出しと実写真の改善評価は行っていない。

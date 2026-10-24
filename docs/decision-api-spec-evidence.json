@@ -1,9 +1,9 @@
 {
-  "checked_at_utc": "2026-10-23T08:18:42Z",
+  "checked_at_utc": "2026-10-24T02:45:14Z",
   "provider": "OpenAI (confirmed by user)",
   "api_endpoint": "https://api.openai.com/v1/decisions",
   "model": "gpt-6-luna",
-  "auth_contract": "Bearer OPENAI_API_KEY; environment route and account credit not verified; no secret values accessed",
+  "auth_contract": "Bearer OPENAI_API_KEY opaque network placeholder; runtime presence true; no real auth/proxy/billing probe",
   "sources": {
     "ga_2026_10_22": "https://openai.com/index/decisions-api/",
     "changelog": "https://developers.openai.com/api/docs/changelog",
@@ -17,10 +17,21 @@
     "python_answer_blob_sha": "0f4e9627ec77c4e0841631ec59c7167a2032ab93",
     "typescript_revision": "4c11b87c3e5e4fcddeeffc85b55502b2296f49fd",
     "typescript_path": "src/resources/decisions.ts",
-    "typescript_blob_sha": "556ceb057a74d1b8857e9fe9940858960a250a15"
+    "typescript_blob_sha": "556ceb057a74d1b8857e9fe9940858960a250a15",
+    "model_limits": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+    "pricing": "https://developers.openai.com/api/docs/pricing"
   },
-  "question_types": ["predicate", "choice", "score"],
-  "answer_types": ["predicate", "choice", "score", "refusal"],
+  "question_types": [
+    "predicate",
+    "choice",
+    "score"
+  ],
+  "answer_types": [
+    "predicate",
+    "choice",
+    "score",
+    "refusal"
+  ],
   "image_input": true,
   "native_bbox_in_inspected_contract": false,
   "arbitrary_identity_output_in_inspected_contract": false,
@@ -30,8 +41,32 @@
   "new_model_http": 0,
   "new_model_spend_usd": 0,
   "free_credit_status": "unverified",
-  "openai_api_key_presence_check": "absent; existence only, no value expansion",
+  "openai_api_key_presence_check": "present; boolean only, no value or identifying derivative displayed or persisted",
   "https_proxy_presence_check": "present; existence only, no value expansion",
-  "openai_network_secret_route": "unknown; no per-domain mapping metadata exposed; key absence does not prove route absence",
-  "spend_approval_status": "pending"
+  "openai_network_secret_route": "user configured api.openai.com mapping; fresh runtime value present; actual proxy substitution untested",
+  "spend_approval_status": "USD 0.50 approved for this comparison; live paused until original approved photos arrive",
+  "transport_pricing_snapshot": {
+    "id": "decisions-luna-2026-10-24-standard-no-cache",
+    "verified_date_utc": "2026-10-24",
+    "live_rejects_after_verified_utc_date": true,
+    "context_tokens_per_question_upper_bound": 1050000,
+    "max_output_tokens_per_question": 128000,
+    "uncached_input_usd_per_million": "0.10",
+    "output_usd_per_million_decisions_endpoint": "0",
+    "long_context_threshold_input_tokens": 272000,
+    "long_context_input_multiplier": "2",
+    "regional_multiplier_reserved": "1.10",
+    "cache_mode": "explicit_without_breakpoints",
+    "reservation_usd_per_question": "0.231",
+    "two_presence_requests_reservation_usd": "0.462",
+    "reservation_is_not_expected_or_measured_cost": true,
+    "assumptions": [
+      "documented model context bounds for each question",
+      "standard Decisions pricing/funding confirmed for the account",
+      "no caching; zero cache read/write usage required",
+      "shared intact ledger and known prior comparison spend",
+      "provider honors documented limits and prices"
+    ],
+    "fail_closed_on_unconfirmed_bound": true
+  }
 }
